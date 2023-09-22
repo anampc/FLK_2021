@@ -1,5 +1,5 @@
 ---
-title: "Carbon Chemestry explore - New database"
+title: "Carbon Chemistry explore - New database"
 author: "Ana Palacio-Castro"
 date: "`r Sys.Date()`"
 output:
@@ -54,7 +54,7 @@ theme(legend.position="top",
 
 ```
 
-# 1. Import and format carbon chemestry data
+# 1. Import and format carbon chemistry data
 
 ```{r, include=FALSE}
 # 1. Get data
@@ -607,16 +607,16 @@ nDIC_Sal<- ggplot(FLK.data) + MyTheme+
 
 FLK_parameters<-ggarrange(nTA_Sal, nDIC_Sal,
           #labels = c("DIC Friss regresion", "TA Friss regresion"),
-          ncol = 2, nrow = 1)
+          ncol = 1, nrow = 2)
 
 FLK_parameters
 ```
 
-**Figure 1:** Overview of linear regressions of total alkalinity (TA, µmol kg−1) and disolved inorganic carbon (DIC, µmol kg−1) as a function of salinity + Friss normalized values.
+**Figure 1:** Overview of linear regressions of total alkalinity (TA, µmol kg−1) and dissolved inorganic carbon (DIC, µmol kg−1) as a function of salinity + Friss normalized values.
 
 * Original data: Black line and circles
 * Friis normalization: blue line and triangles
-* Highest and lowest salinities are mostlikely wrong
+* Highest and lowest salinities are most likely wrong
 
 ## Bias of hour of the day per sample (EST)
  
@@ -1432,23 +1432,23 @@ FLK.data_filtered<-FLK.data_filtered%>% select (- (Survey_design: seacarb_id))
 * Local carbonate chemistry: 
   * Seasonal (light), storms, upwelling, salinity (rain). 
   * Biological: coral/seagrass/macroalgae cover 
-  * Biological + Seasonal: Photosyntesis, respiration.
+  * Biological + Seasonal: Photosynthesis, respiration.
   * Physical: inlets, rivers, upwelling
 
 ## Manzello (2012)
 
 * local carbonate chemistry: Variation on CO2, alkalinity, and salinity - Florida Reef Tract (FRT) data.
 
-* Meassure total CO2 (TCO2) - colometrically and total alkalinity (TA) - gran titration. Other paramethers derived 
+* Measures total CO2 (TCO2) - colometrically and total alkalinity (TA) - gran tritration. Other parameters derived 
 * Predominantly in inshore / upper FRT (higher than modeled). 
 * H Productivity -> net uptake of total CO2 (TCO2) -> H aragonite
-*Offshore reefs: oceanic carbonate chemistries consistent with present day tropical surface ocean conditions.
+*Offshore reefs: oceanic carbonate chemistry consistent with present day tropical surface ocean conditions.
 * Photosynthetic uptake of TCO2 by seagrasses/macroalgae in the inshore waters of the FRT. Acidification refugia (spatial * time)
 
 ## Uthicke (2014)
 
 * GBR - 14 Inshore fringing  reefs
-Meassured: TA and DIC. Derived:pCO2, pH and aragonite
+Measured: TA and DIC. Derived:pCO2, pH and aragonite
 * TA: 2069 - 2364 mmol kg2
 * DIC:1846 - 2099 mmol kg2
 * pCO2: 340 - 554 matm

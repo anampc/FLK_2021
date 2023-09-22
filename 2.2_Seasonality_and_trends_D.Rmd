@@ -1,5 +1,5 @@
 ---
-title: "Carbon Chemistry analysis: seasonality and long trends"
+title: "Carbon Chemistry analysis (2021): seasonality and long trends"
 author: "Ana Palacio-Castro"
 date: "`r Sys.Date()`"
 output:
@@ -222,57 +222,6 @@ WS.GPS.Sites <- ddply (FLK.data, .(Sub_region, Zone, SiteID),summarise,
 #write.csv(WS.GPS.Sites, "FLK_results/1_meanSatationGPS.csv")
 ```
 
-Flag samples with coordinates that seem off from the permanent station
-
-```{r}
-# Coordinates<-select(FLK.data, "CTDID", "Latitude", "Longitude", "SiteID")
-# Coordinates<-join(Coordinates, WS.GPS.Sites, 
-#                  type = "left", by="SiteID")
-# Coordinates$Lat_diff <- abs(Coordinates$Latitude-Coordinates$Lat)
-# Coordinates$Lon_diff <- abs(Coordinates$Longitude-Coordinates$Lon)
-# Check.coordinates1 <- Coordinates[(Coordinates$Lat_diff>0.02), ]
-# Check.coordinates2 <- Coordinates[(Coordinates$Lon_diff>0.02), ]
-# Check.coordinates <- rbind(Check.coordinates1, Check.coordinates2)
-# Check.coordinates <- unique(Check.coordinates)
-# #write.csv(Check.coordinates, "FLK_results/2_WrongGPS_points.csv", row.names=F)
-```
-
-```{r Mean.Map, include=FALSE}
-# Map information
-pal.gen <- colorFactor(palette = "Set1",
-                         domain = WS.GPS.Sites$Zone)
-
-
-# add colour label column
-WS.GPS.Sites <- WS.GPS.Sites %>%
-  mutate(color = case_when(
-    Zone == "Inshore" ~ "red",
-    Zone == "Mid channel" ~ "pink",
-    Zone == "Offshore" ~ "purple",
-    Zone == "Oceanic" ~ "darkblue"))
-
-# add icon label column
-WS.GPS.Sites <- WS.GPS.Sites %>%
-  mutate(icon = case_when(
-    Zone == "Inshore" ~ "home",
-    Zone == "Mid channel" ~ "square",
-    Zone == "Offshore" ~ "triangle",
-    Zone == "Oceanic" ~ "home"))
-
-# create awesome icons
-my_icons <- awesomeIcons(icon = WS.GPS.Sites$icon,
-                         markerColor = WS.GPS.Sites$color,
-                         library = "glyphicon")
-
-# leaflet using AwesomeMarkers
-WS.GPS.Sites %>% 
-  leaflet() %>% 
-  addTiles() %>% 
-  addAwesomeMarkers(lng = ~ Lon, lat = ~ Lat, 
-                    icon = ~ my_icons[Zone])
-  
-```
-
 # - Figure 1: Stations
 
 ```{r WSmap, echo=FALSE}
@@ -481,6 +430,14 @@ kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), fon
 ```
 
 ## Remove extreme events?
+
+Three extreme weather events can be observed in the data and associated with abnormal conditions:
+
+* A cold snap that caused coral mortality in March 2010
+* Extreme precipitation that reduced salinity in October 2011 ()
+* Abnormally low pH in July, Sept and Nov 2019 (not know reason)
+
+These data can be seen / flagged / filtered using the "Extreme" column. 
 
 ```{r}
 # Label and filter extreme events
