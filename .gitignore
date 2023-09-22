@@ -1,15 +1,28 @@
+# R and R studio files
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.Rproj
+
+
 # R, rstudio and markdown
 # History files
 **/.Rhistory
+.Rhistory
 # Output files from R CMD check
 #/*.Rcheck/
 
 # RStudio files
 **/.Rproj.user
+.Rproj.user
 **/.Rproj
+.Rproj
 **/*.Rproj
 **/.RData
+.RData
 **/.Ruserdata
+.Ruserdata
 
 # produced vignettes
 vignettes/*.html
