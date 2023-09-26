@@ -448,16 +448,18 @@ These data can be seen / flagged / filtered using the "Extreme" column.
 ```{r}
 # Label and filter extreme events
   FLK.data$Extreme<-as.factor(FLK.data$Extreme)
-  summary(FLK.data$Extreme)
+    summary(FLK.data$Extreme)
   FLK.data_filtered<-FLK.data[FLK.data$Extreme=="Normal",]
   
 ```
 
 # 3 Temperature and salinity impacts on carbonate chemistry
 
-## - Zone
+## Temperature vs salinity 
 
-```{r,  fig.height=6, fig.width=8}
+### Zone
+
+```{r,  fig.height=5, fig.width=8}
 Tep_Sal_Sea<- ggplot(FLK.data) + MyTheme+
   geom_point(aes (Temperature_C, BestSalinity, fill=Season, shape=Zone),
              alpha=0.7, size=0.8)+
@@ -468,7 +470,7 @@ Tep_Sal_Sea<- ggplot(FLK.data) + MyTheme+
   #Precipitation_fill+
   Season_fill+
   Zone_shapes4+
-  guides(shape = FALSE)+
+  guides(shape = "none")+
   scale_y_continuous(#limits = c(1700, 2400),
                      expand = c(0.3, 0.02),
                      name=expression(Salinity))+
@@ -517,11 +519,11 @@ kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), fon
 Te_sal_model<-lm(BestSalinity ~ Temperature_C * Zone, data=FLK.data)
     anova(Te_sal_model)
     #summary(Te_sal_model)
-    Te_sal_aov<-aov(Te_sal_model)
-    
-    TeS_PostH<-TukeyHSD(Te_sal_aov, c("Zone"), 
-                       ordered = TRUE)
-    TeS_PostH
+    # Te_sal_aov<-aov(Te_sal_model)
+    # 
+    # TeS_PostH<-TukeyHSD(Te_sal_aov, c("Zone"), 
+    #                    ordered = TRUE)
+    # TeS_PostH
     
     m.lst <- lstrends(Te_sal_model, "Zone", var="Temperature_C")
     pairs(m.lst)
@@ -529,9 +531,9 @@ Te_sal_model<-lm(BestSalinity ~ Temperature_C * Zone, data=FLK.data)
 
 Only offshore and oceanic share the same temperature/salinity slopes. All other zones are different among each other 
 
-## - Region and zone
+### Region and zone
 
-```{r,  fig.height=6, fig.width=8}
+```{r,  fig.height=5, fig.width=8}
 Tep_Sal_Reg<- ggplot(FLK.data) + MyTheme+
   geom_point(aes (Temperature_C, BestSalinity, fill=Sub_region, shape=Zone),
              alpha=0.6, size=0.8)+
@@ -540,6 +542,7 @@ Tep_Sal_Reg<- ggplot(FLK.data) + MyTheme+
   geom_smooth(aes(Temperature_C, BestSalinity),
               linetype=1, method = "lm", colour="black")+
   Zone_shapes4+
+  guides(shape="none")+
   scale_y_continuous(#limits = c(1700, 2400),
                      expand = c(0.3, 0.02),
                      name=expression(Salinity))+
@@ -573,11 +576,10 @@ kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), fon
 T_sal_model<-lm(BestSalinity~Temperature_C * Sub_region * Zone, data=FLK.data)
     anova(T_sal_model)
     #summary(T_sal_model)
-    TA_sal_aov<-aov(T_sal_model)
-    
-    TA_PostH<-TukeyHSD(TA_sal_aov, c("Sub_region", "Zone"), 
-                       ordered = TRUE)
-    TA_PostH
+    # TA_sal_aov<-aov(T_sal_model)
+    # TA_PostH<-TukeyHSD(TA_sal_aov, c("Sub_region", "Zone"), 
+    #                    ordered = TRUE)
+    # TA_PostH
     
     m.lst <- lstrends(T_sal_model, "Sub_region", var="Temperature_C")
     pairs(m.lst)
@@ -594,13 +596,13 @@ T_sal_model_in<-lm(BestSalinity~Temperature_C * Sub_region,
 
 Inshore, Upper and middle keys slopes are different from each other 
 
-## 3.1 Temperature impacts on CC
+## 3.1 Temperature impacts on TA and DIC
 
 ### 3.1.1 Temperature and TA: Model II OLS regressions 
 
-* Tem-TA plots by zone 
+* Temperature-TA plots by zone 
 
-```{r,  fig.height=6, fig.width=8}
+```{r,  fig.height=5, fig.width=8}
 
 TA_Tem<- ggplot(FLK.data) + MyTheme+
   geom_point(aes (Temperature_C, TA_umol_kg, fill=Season, shape=Zone),
@@ -610,6 +612,7 @@ TA_Tem<- ggplot(FLK.data) + MyTheme+
   #Precipitation_fill+
   Season_fill+
   Zone_shapes4+
+  guides(shape="none")+
   scale_y_continuous(#limits = c(1700, 2400),
                      expand = c(0.3, 0.02),
                      name=expression(paste("TA (", mu, "mol ", kg^-1, ")")))+
@@ -646,18 +649,16 @@ kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), fon
 TA_tem_model<-lm(TA_umol_kg~Temperature_C * Sub_region * Zone, data=FLK.data)
     anova(TA_tem_model)
     #summary(TA_tem_model)
-    TA_sal_aov<-aov(TA_tem_model)
-    
-    TA_PostH<-TukeyHSD(TA_sal_aov, c( "Zone"), 
-                       ordered = TRUE)
-    TA_PostH
+    # TA_sal_aov<-aov(TA_tem_model)
+    # TA_PostH<-TukeyHSD(TA_sal_aov, c( "Zone"), 
+    #                    ordered = TRUE)
+    # TA_PostH
     
     m.lst <- lstrends(TA_tem_model, "Zone", var="Temperature_C")
     pairs(m.lst)
-  
 ```
 
-* Tem-TA plots by region and zone 
+* Temperature-TA plots by region and zone 
 
 ```{r,  fig.height=6, fig.width=8}
 TA_Temp_Reg<- ggplot(FLK.data) + MyTheme+
@@ -668,6 +669,7 @@ TA_Temp_Reg<- ggplot(FLK.data) + MyTheme+
   geom_smooth(aes(Temperature_C, TA_umol_kg),
               linetype=1, method = "lm", colour="black")+
   Zone_shapes4+
+  guides(shape="none")+
   scale_y_continuous(#limits = c(1700, 2400),
                      expand = c(0.3, 0.02),
                      name=expression(paste("TA (", mu, "mol ", kg^-1, ")")))+
@@ -679,7 +681,7 @@ TA_Temp_Reg + facet_grid(~Zone)
 
 ```
 
-* Tem-TA: Model II OLS regressions 
+* Temperature-TA: Model II OLS regressions 
 
 ```{r}
 TA_coef_OLS <- FLK.data %>%
@@ -696,18 +698,17 @@ kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), fon
 #write.csv(TA_coef_OLS, "FLK_results/TA_Sal.csv")
 ```
 
-* Are TA vs Sal slopes different by region?
+* Are TA vs Temperature slopes different by region?
 
 ```{r}
 # All data 
 TA_tem_model<-lm(TA_umol_kg~Temperature_C * Sub_region * Zone, data=FLK.data)
     anova(TA_tem_model)
     #summary(TA_tem_model)
-    TA_sal_aov<-aov(TA_tem_model)
-    
-    TA_PostH<-TukeyHSD(TA_sal_aov, c("Sub_region", "Zone"), 
-                       ordered = TRUE)
-    TA_PostH
+    # TA_sal_aov<-aov(TA_tem_model)
+    # TA_PostH<-TukeyHSD(TA_sal_aov, c("Sub_region", "Zone"), 
+    #                    ordered = TRUE)
+    # TA_PostH
     
     m.lst <- lstrends(TA_tem_model, "Sub_region", var="Temperature_C")
     pairs(m.lst)
@@ -724,9 +725,9 @@ TA_tem_model_in<-lm(TA_umol_kg~Temperature_C * Sub_region,
 
 ### 3.1.2 Temperature and DIC: Model II OLS regressions 
 
-* Tem-DIC plots by zone 
+* Temperature-DIC plots by zone 
 
-```{r,  fig.height=6, fig.width=8}
+```{r,  fig.height=5, fig.width=8}
 
 DIC_Tem<- ggplot(FLK.data) + MyTheme+
   geom_point(aes (Temperature_C, DIC_umol_kg, fill=Season, shape=Zone),
@@ -736,6 +737,7 @@ DIC_Tem<- ggplot(FLK.data) + MyTheme+
   #Precipitation_fill+
   Season_fill+
   Zone_shapes4+
+  guides(shape="none")+
   scale_y_continuous(#limits = c(1700, 2400),
                      expand = c(0.3, 0.02),
                      name=expression(paste("DIC (", mu, "mol ", kg^-1, ")")))+
@@ -743,9 +745,7 @@ DIC_Tem<- ggplot(FLK.data) + MyTheme+
                      expand = c(0.02, 0.02),
                      (expression("Temperature"~(degree*C))))
 DIC_Tem + facet_grid(~Zone)
-#DIC_Sal+ facet_grid(Zone~Precipitation)
 #ggsave(file="FLK_results/DIC_Sal.svg", plot=DIC_Sal_all, dpi = 300, width=5, height=5)
-
 ```
 
 * Tem-DIC: Model II OLS regressions 
@@ -772,20 +772,18 @@ kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), fon
 DIC_tem_model<-lm(DIC_umol_kg~Temperature_C * Sub_region * Zone, data=FLK.data)
     anova(DIC_tem_model)
     #summary(DIC_tem_model)
-    DIC_sal_aov<-aov(DIC_tem_model)
-    
-    DIC_PostH<-TukeyHSD(DIC_sal_aov, c( "Zone"), 
-                       ordered = TRUE)
-    DIC_PostH
-    
+    # DIC_sal_aov<-aov(DIC_tem_model)
+    # DIC_PostH<-TukeyHSD(DIC_sal_aov, c( "Zone"), 
+    #                    ordered = TRUE)
+    # DIC_PostH
+    #
     m.lst <- lstrends(DIC_tem_model, "Zone", var="Temperature_C")
     pairs(m.lst)
-  
 ```
 
-* Tem-DIC plots by region and zone 
+* Temperature-DIC plots by region and zone 
 
-```{r,  fig.height=6, fig.width=8}
+```{r,  fig.height=5, fig.width=8}
 DIC_Temp_Reg<- ggplot(FLK.data) + MyTheme+
   geom_point(aes (Temperature_C, DIC_umol_kg, fill=Sub_region, shape=Zone),
              alpha=0.6, size=0.8)+
@@ -793,6 +791,7 @@ DIC_Temp_Reg<- ggplot(FLK.data) + MyTheme+
               linetype=1, method = "lm", se=F)+
   geom_smooth(aes(Temperature_C, DIC_umol_kg),
               linetype=1, method = "lm", colour="black")+
+  guides(shape="none")+
   Zone_shapes4+
   scale_y_continuous(#limits = c(1700, 2400),
                      expand = c(0.3, 0.02),
@@ -802,10 +801,9 @@ DIC_Temp_Reg<- ggplot(FLK.data) + MyTheme+
                      (expression("Temperature"~(degree*C))))
 DIC_Temp_Reg + facet_grid(~Zone)
 #ggsave(file="FLK_results/DIC_Sal.svg", plot=DIC_Sal_all, dpi = 300, width=5, height=5)
-
 ```
 
-* Tem-DIC: Model II OLS regressions 
+* Temperature-DIC: Model II OLS regressions by region and zone
 
 ```{r}
 DIC_coef_OLS <- FLK.data %>%
@@ -822,18 +820,17 @@ kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), fon
 #write.csv(DIC_coef_OLS, "FLK_results/DIC_Sal.csv")
 ```
 
-* Are DIC vs Sal slopes different by region?
+* Are DIC vs Temperature slopes different by region?
 
 ```{r}
 # All data 
 DIC_tem_model<-lm(DIC_umol_kg~Temperature_C * Sub_region * Zone, data=FLK.data)
     anova(DIC_tem_model)
     #summary(DIC_tem_model)
-    DIC_sal_aov<-aov(DIC_tem_model)
-    
-    DIC_PostH<-TukeyHSD(DIC_sal_aov, c("Sub_region", "Zone"), 
-                       ordered = TRUE)
-    DIC_PostH
+    # DIC_sal_aov<-aov(DIC_tem_model)
+    # DIC_PostH<-TukeyHSD(DIC_sal_aov, c("Sub_region", "Zone"), 
+    #                    ordered = TRUE)
+    # DIC_PostH
     
     m.lst <- lstrends(DIC_tem_model, "Sub_region", var="Temperature_C")
     pairs(m.lst)
@@ -848,9 +845,11 @@ DIC_tem_model_in<-lm(DIC_umol_kg~Temperature_C * Sub_region,
     pairs(m.lst)
 ```
 
-### 3.1.3 TA/DIC Tem
+### 3.1.3 TA/DIC Temperature
 
-```{r, fig.height=6, fig.width=8}
+* TA/DIC vs Temperature plots by zone
+
+```{r, fig.height=5, fig.width=8}
 FLK.data$TA_DIC<-FLK.data$TA_umol_kg/FLK.data$DIC_umol_kg
 
 TA_DIC_Sal<- ggplot(FLK.data) + MyTheme+
@@ -862,6 +861,7 @@ TA_DIC_Sal<- ggplot(FLK.data) + MyTheme+
                linetype=1, method = "lm", colour="black")+
   Zone_shapes4+
   Season_fill+
+  guides(shape="none")+
   scale_y_continuous(#limits = c(1700, 2400),
                      expand = c(0.02, 0.02),
                      name=expression(paste("TA/DIC")))+
@@ -870,6 +870,8 @@ TA_DIC_Sal<- ggplot(FLK.data) + MyTheme+
                      (expression("Temperature"~(degree*C))))
 TA_DIC_Sal + facet_grid(~Zone)
 ```
+
+* TA/DIC vs Temperature: Model II OLS regressions by zone
 
 ```{r}
 ##TA/DIC vs sal by zone
@@ -887,22 +889,27 @@ kable(as.data.frame(TA_DIC_Sal_Z[,1:8], format = "markdown"),
       kable_styling(bootstrap_options = c("striped", "condensed", 
                                       full_width = F), font_size = 11)
 #write.csv(TA_DIC_Sal_Z, "FLK_results/TA_DIC_Z.csv")
+```
+
+* * TA/DIC vs Temperature: Model II OLS regressions by region and zone
+
+```{r}
 
 ##TA/DIC vs sal by regions and zone
-TA_DIC_Sal <- FLK.data %>%
+TADIC_Sal <- FLK.data %>%
                   group_by(Sub_region, Zone) %>%
                   do({model = lm(TA_DIC~Temperature_C, data=.)
                   # create model
                   data.frame(tidy(model), # get coefficient info
                   glance(model))})        # get model info
-#TA_DIC_Sal
+#TADIC_Sal
   
-kable(as.data.frame(TA_DIC_Sal[,1:8], format = "markdown"), 
+kable(as.data.frame(TADIC_Sal[,1:8], format = "markdown"), 
       caption = "Table: TA/DIC vs Tem by zone and region",
       digits = 3)%>% 
       kable_styling(bootstrap_options = c("striped", "condensed", 
                                       full_width = F), font_size = 11)
-#write.csv(TA_DIC_Sal, "FLK_results/TA_DIC_all.csv")
+#write.csv(TADIC_Sal, "FLK_results/TA_DIC_all.csv")
 
 ```
 
@@ -912,10 +919,9 @@ kable(as.data.frame(TA_DIC_Sal[,1:8], format = "markdown"),
 TA_DIA_sal_model<-lm(TA_DIC~Temperature_C * Sub_region * Zone, data=FLK.data)
     anova(TA_DIA_sal_model)
     #summary(TA_DIA_sal_model)
-    DIC_sal_aov<-aov(TA_DIA_sal_model)
-    
-    TADIC_PostH<-TukeyHSD(DIC_sal_aov, c("Sub_region", "Zone"), ordered = TRUE)
-    TADIC_PostH
+    # DIC_sal_aov<-aov(TA_DIA_sal_model)
+    # TADIC_PostH<-TukeyHSD(DIC_sal_aov, c("Sub_region", "Zone"), ordered = TRUE)
+    # TADIC_PostH
     
     m.lst <- lstrends(TA_DIA_sal_model, "Sub_region", var="Temperature_C") 
     pairs(m.lst)
@@ -928,7 +934,6 @@ TA_DIA_sal_model_in<-lm(TA_DIC~Temperature_C * Sub_region,
     m.lst <- lstrends(TA_DIA_sal_model_in, "Sub_region", var="Temperature_C") 
     pairs(m.lst)
 ```
-
 
 # 3.2 Salinity impacts on TA and DIC
 
@@ -946,25 +951,9 @@ Sal
 
 ## 3.2.1 Salinity TA: Model II OLS regressions 
 
-* Salinity-TA plots
+* Salinity-TA plots by zone
 
-```{r,  fig.height=6, fig.width=8}
-TA_Sal_Reg<- ggplot(FLK.data) + MyTheme+
-  geom_point(aes (BestSalinity, TA_umol_kg, fill=Sub_region, shape=Zone),
-             alpha=0.6, size=0.8)+
-  geom_smooth(aes(BestSalinity, TA_umol_kg, colour=Sub_region),
-              linetype=1, method = "lm", se=F)+
-  geom_smooth(aes(BestSalinity, TA_umol_kg),
-              linetype=1, method = "lm", colour="black")+
-  Zone_shapes4+
-  scale_y_continuous(#limits = c(1700, 2400),
-                     expand = c(0.3, 0.02),
-                     name=expression(paste("TA (", mu, "mol ", kg^-1, ")")))+
-  scale_x_continuous(#limits = c(1700, 2400),
-                     expand = c(0.02, 0.02),
-                     name=expression(paste("Salinity")))
-TA_Sal_Reg + facet_grid(~Zone)
-
+```{r, fig.height=5, fig.width=8}
 TA_Sal<- ggplot(FLK.data) + MyTheme+
   geom_point(aes (BestSalinity, TA_umol_kg, fill=Season, shape=Zone),
              alpha=0.7, size=1)+
@@ -973,6 +962,7 @@ TA_Sal<- ggplot(FLK.data) + MyTheme+
   #Precipitation_fill+
   Season_fill+
   Zone_shapes4+
+  guides(shape="none")+
   scale_y_continuous(#limits = c(1700, 2400),
                      expand = c(0.3, 0.02),
                      name=expression(paste("TA (", mu, "mol ", kg^-1, ")")))+
@@ -982,10 +972,49 @@ TA_Sal<- ggplot(FLK.data) + MyTheme+
 TA_Sal + facet_grid(~Zone)
 #TA_Sal+ facet_grid(Zone~Precipitation)
 #ggsave(file="FLK_results/TA_Sal.svg", plot=TA_Sal_all, dpi = 300, width=5, height=5)
+```
+
+* Salinity-TA: Model II OLS regressions by zone
+
+```{r}
+TA_coef_OLS <- FLK.data %>%
+                group_by(Zone) %>%
+                do({model = lm(TA_umol_kg~BestSalinity, data=.)  # model
+                    data.frame(tidy(model), # get coefficient info
+                    glance(model))})        # get model info
+#TA_coef_OLS
+
+kable(as.data.frame(TA_coef_OLS[,1:9], format = "markdown"), 
+      caption = "Table: TA vs salinity linear regressions by region and zone",
+      digits = 3)%>% 
+kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), font_size = 11)
+#write.csv(TA_coef_OLS, "FLK_results/TA_Sal.csv")
 
 ```
 
-* Salinity-TA: Model II OLS regressions 
+* Salinity-TA plots by zone and region
+
+```{r,  fig.height=5, fig.width=8}
+TA_Sal_Reg<- ggplot(FLK.data) + MyTheme+
+  geom_point(aes (BestSalinity, TA_umol_kg, fill=Sub_region, shape=Zone),
+             alpha=0.6, size=0.8)+
+  geom_smooth(aes(BestSalinity, TA_umol_kg, colour=Sub_region),
+              linetype=1, method = "lm", se=F)+
+  geom_smooth(aes(BestSalinity, TA_umol_kg),
+              linetype=1, method = "lm", colour="black")+
+  Zone_shapes4+
+  guides(shape="none")+
+  scale_y_continuous(#limits = c(1700, 2400),
+                     expand = c(0.3, 0.02),
+                     name=expression(paste("TA (", mu, "mol ", kg^-1, ")")))+
+  scale_x_continuous(#limits = c(1700, 2400),
+                     expand = c(0.02, 0.02),
+                     name=expression(paste("Salinity")))
+TA_Sal_Reg + facet_grid(~Zone)
+
+```
+
+* Salinity-TA: Model II OLS regressions by zone and region
 
 ```{r}
 TA_coef_OLS <- FLK.data %>%
@@ -1010,11 +1039,10 @@ kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), fon
 TA_sal_model<-lm(TA_umol_kg~BestSalinity * Sub_region * Zone, data=FLK.data)
     anova(TA_sal_model)
     #summary(TA_sal_model)
-    TA_sal_aov<-aov(TA_sal_model)
-    
-    TA_PostH<-TukeyHSD(TA_sal_aov, c("Sub_region", "Zone"), 
-                       ordered = TRUE)
-    TA_PostH
+    # TA_sal_aov<-aov(TA_sal_model)
+    # TA_PostH<-TukeyHSD(TA_sal_aov, c("Sub_region", "Zone"), 
+    #                    ordered = TRUE)
+    # TA_PostH
     
     m.lst <- lstrends(TA_sal_model, "Sub_region", var="BestSalinity")
     pairs(m.lst)
@@ -1032,33 +1060,16 @@ TA_sal_model_in<-lm(TA_umol_kg~BestSalinity * Sub_region,
 
 ## 3.2.1 Salinity DIC: Model II OLS regressions 
 
-* Salinity-DIC plots
+* Salinity-DIC plots by zone 
 
-```{r  fig.height=6, fig.width=8}
-DIC_Sal_Reg<- ggplot(FLK.data) + MyTheme+
-  geom_point(aes (BestSalinity, DIC_umol_kg, fill=Sub_region, shape=Zone),
-             alpha=0.6, size=.8)+
-  geom_smooth(aes(BestSalinity, DIC_umol_kg, colour=Sub_region),
-              linetype=1, method = "lm", se=F)+
-  geom_smooth(aes(BestSalinity, DIC_umol_kg),
-              linetype=1, method = "lm", colour="black")+
-  #Precipitation_fill+
-  Zone_shapes4+
-  scale_y_continuous(#limits = c(1700, 2400),
-                     expand = c(0.3, 0.02),
-                     name=expression(paste("DIC (", mu, "mol ", kg^-1, ")")))+
-  scale_x_continuous(#limits = c(1700, 2400),
-                     expand = c(0.02, 0.02),
-                     name=expression(paste("Salinity")))
-
-DIC_Sal_Reg + facet_grid(~Zone)
-
+```{r  fig.height=5, fig.width=8}
 DIC_Sal<- ggplot(FLK.data) + MyTheme+
   geom_point(aes (BestSalinity, DIC_umol_kg, fill=Season, shape=Zone),
              alpha=0.7, size=1)+
   geom_smooth(aes(BestSalinity, DIC_umol_kg),
               linetype=1, method = "lm", color="black")+
   Season_fill+
+  guides(shape="none")+
   Zone_shapes4+
   scale_y_continuous(#limits = c(1700, 2400),
                      expand = c(0.3, 0.02),
@@ -1068,6 +1079,66 @@ DIC_Sal<- ggplot(FLK.data) + MyTheme+
                      name=expression(paste("Salinity")))
 DIC_Sal+ facet_grid(~Zone)
 
+
+```
+
+* Sal-DIC: Model II OLS regressions by zone
+
+```{r}
+DIC_coef_OLS <- FLK.data %>%
+                  group_by(Zone) %>%
+                  do({model = lm(DIC_umol_kg~BestSalinity, data=.)
+                  # create model
+                  data.frame(tidy(model), # get coefficient info
+                  glance(model))})        # get model info
+  #DIC_coef_OLS
+  
+  kable(as.data.frame(DIC_coef_OLS[,1:9], format = "markdown"), 
+      caption = "Table: DIC vs salinity model II regressions by zone",
+      digits = 3)%>% 
+  kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), font_size = 11)
+  #write.csv(DIC_coef_OLS, "FLK_results/DIC_Sal.csv")
+```
+
+Are DIC vs Temperature slopes different in each zone?
+
+```{r}
+# Are the slopes different? 
+DIC_sal_model<-lm(DIC_umol_kg~BestSalinity * Zone, data=FLK.data)
+    anova(DIC_sal_model)
+    summary(DIC_sal_model)
+    # DIC_sal_aov<-aov(DIC_sal_model)
+    # DIC_PostH<-TukeyHSD(DIC_sal_aov, c("Sub_region", "Zone"), ordered = TRUE)
+    # DIC_PostH
+    m.lst <- lstrends(DIC_sal_model, "Zone", var="BestSalinity") 
+    pairs(m.lst)
+```
+
+Salinity-DIC plots by region and zone
+
+```{r  fig.height=5, fig.width=8}
+DIC_Sal_Reg<- ggplot(FLK.data) + MyTheme+
+  geom_point(aes (BestSalinity, DIC_umol_kg, fill=Sub_region, shape=Zone),
+             alpha=0.6, size=.8)+
+  geom_smooth(aes(BestSalinity, DIC_umol_kg, colour=Sub_region),
+              linetype=1, method = "lm", se=F)+
+  geom_smooth(aes(BestSalinity, DIC_umol_kg),
+              linetype=1, method = "lm", colour="black")+
+  #Precipitation_fill+
+  Zone_shapes4+
+  guides(shape="none")+
+  scale_y_continuous(#limits = c(1700, 2400),
+                     expand = c(0.3, 0.02),
+                     name=expression(paste("DIC (", mu, "mol ", kg^-1, ")")))+
+  scale_x_continuous(#limits = c(1700, 2400),
+                     expand = c(0.02, 0.02),
+                     name=expression(paste("Salinity")))
+DIC_Sal_Reg + facet_grid(~Zone)
+```
+
+* Salinity-DIC: Model II OLS regressions by region and zone
+
+```{r}
 DIC_coef_OLS <- FLK.data %>%
                   group_by(Sub_region, Zone) %>%
                   do({model = lm(DIC_umol_kg~BestSalinity, data=.)
@@ -1077,19 +1148,24 @@ DIC_coef_OLS <- FLK.data %>%
   #DIC_coef_OLS
   
   kable(as.data.frame(DIC_coef_OLS[,1:9], format = "markdown"), 
-      caption = "Table: DIC vs salinity model II regressions",
+      caption = "Table: DIC vs salinity model II regressions by region and zone",
       digits = 3)%>% 
   kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), font_size = 11)
   #write.csv(DIC_coef_OLS, "FLK_results/DIC_Sal.csv")
+```
 
+* Are DIC vs Salinity slopes different by region?
+
+```{r}
 # Are the slopes different? 
 DIC_sal_model<-lm(DIC_umol_kg~BestSalinity * Sub_region * Zone, data=FLK.data)
     anova(DIC_sal_model)
     summary(DIC_sal_model)
-    DIC_sal_aov<-aov(DIC_sal_model)
-    
-    DIC_PostH<-TukeyHSD(DIC_sal_aov, c("Sub_region", "Zone"), ordered = TRUE)
-    DIC_PostH
+    # DIC_sal_aov<-aov(DIC_sal_model)
+    # DIC_PostH<-TukeyHSD(DIC_sal_aov, c("Sub_region", "Zone"), ordered = TRUE)
+    # DIC_PostH
+    m.lst <- lstrends(DIC_sal_model, "Sub_region", var="BestSalinity") 
+    pairs(m.lst)
 
 DIC_sal_model_in<-lm(DIC_umol_kg~BestSalinity * Sub_region,
                      data=FLK.data[FLK.data$Zone=="Inshore", ])
@@ -1100,80 +1176,12 @@ DIC_sal_model_in<-lm(DIC_umol_kg~BestSalinity * Sub_region,
     pairs(m.lst)
 ```
 
-* TA and DIC vs Salinity (region and zone) - no season
-
-```{r,  fig.height=6, fig.width=8}
-Salinity_Region<-ggarrange(TA_Sal_Reg + facet_grid(~Zone) +
-                            guides(fill = guide_legend(
-                              override.aes=list(shape=21)),
-                              shape = "none")+
-                            theme(axis.title.x=element_blank(),
-                                  axis.text.x=element_blank(),
-                                  axis.ticks.x=element_blank()),
-                          DIC_Sal_Reg + facet_grid(~Zone)+
-                            theme(legend.position = "none",
-                                  strip.text.x = element_blank(),
-                                  axis.text.x = element_text(angle = 0)), 
-          #labels = c("A", "B"),
-          ncol = 1, nrow = 2, heights = c(1, .9))
-Salinity_Region
-#ggsave(file="FLK_results/Salinity_region.svg", plot=Salinity_Region, dpi = 300, width=5, height=4)
-```
-
-* TA and DIC vs Salinity - region simplified 
-
-```{r, salinity figure, echo=FALSE, fig.height=6, fig.width=8}
-Salinity_plots<-ggarrange(TA_Sal + facet_grid(~Zone) +
-                            guides(fill = guide_legend(
-                              override.aes=list(shape=21)),
-                              shape = "none")+
-                            theme(axis.title.x=element_blank(),
-                                  axis.text.x=element_blank(),
-                                  axis.ticks.x=element_blank()),
-                          DIC_Sal + facet_grid(~Zone)+
-                            theme(legend.position = "none",
-                                  strip.text.x = element_blank()), 
-          #labels = c("A", "B"),
-          ncol = 1, nrow = 2, heights = c(1, .9))
-Salinity_plots
-#ggsave(file="FLK_results/Salinity_plots_edited.svg", plot=Salinity_plots, dpi = 300, width=5, height=4)
-
-##TA
-TA_coef_Zone <- FLK.data %>%
-                  group_by(Zone) %>%
-                  do({model = lm(TA_umol_kg~BestSalinity, data=.)
-                  # create model
-                  data.frame(tidy(model), # get coefficient info
-                  glance(model))})        # get model info
-#TA_coef_Zone
-  
-kable(as.data.frame(TA_coef_Zone[,1:8], format = "markdown"), 
-      caption = "Table 1: TA vs salinity by zone",
-      digits = 3)%>% 
-  kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), font_size = 11)
-#write.csv(TA_coef_Zone, "FLK_results/TA_Sal_Zone.csv")
-
-
-## DIC
-DIC_coef_Zone <- FLK.data %>%
-                  group_by(Zone) %>%
-                  do({model = lm(DIC_umol_kg~BestSalinity, data=.)
-                  # create model
-                  data.frame(tidy(model), # get coefficient info
-                  glance(model))})        # get model info
-#DIC_coef_Zone
-  
-kable(as.data.frame(DIC_coef_Zone[,1:9], format = "markdown"), 
-      caption = "Table 1: DIC vs salinity by zone",
-      digits = 3)%>% 
-kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), font_size = 11)
-#write.csv(DIC_coef_Zone, "FLK_results/DIC_Sal_Zone.csv")
-  
-```
 
 ## 3.2.3 TA/DIC salinity
 
-```{r, fig.height=6, fig.width=8}
+* TA/DIC salinity plot by zone
+
+```{r, fig.height=5, fig.width=8}
 FLK.data$TA_DIC<-FLK.data$TA_umol_kg/FLK.data$DIC_umol_kg
 
 TA_DIC_Sal<- ggplot(FLK.data) + MyTheme+
@@ -1185,6 +1193,7 @@ TA_DIC_Sal<- ggplot(FLK.data) + MyTheme+
                linetype=1, method = "lm", colour="black")+
   Zone_shapes4+
   Season_fill+
+  guides(shape="none")+
   scale_y_continuous(#limits = c(1700, 2400),
                      expand = c(0.02, 0.02),
                      name=expression(paste("TA/DIC")))+
@@ -1193,6 +1202,8 @@ TA_DIC_Sal<- ggplot(FLK.data) + MyTheme+
                      name=expression(paste("Salinity")))
 TA_DIC_Sal + facet_grid(~Zone)
 ```
+
+* TA/DIC vs Salinity: Model II OLS regressions by zone
 
 ```{r}
 ##TA/DIC vs sal by zone
@@ -1210,22 +1221,50 @@ kable(as.data.frame(TA_DIC_Sal_Z[,1:8], format = "markdown"),
       kable_styling(bootstrap_options = c("striped", "condensed", 
                                       full_width = F), font_size = 11)
 #write.csv(TA_DIC_Sal_Z, "FLK_results/TA_DIC_Z.csv")
+```
 
-##TA/DIC vs sal by regions and zone
-TA_DIC_Sal <- FLK.data %>%
+* TA/DIC salinity plot by region and zone
+
+```{r, fig.height=5, fig.width=8}
+FLK.data$TA_DIC<-FLK.data$TA_umol_kg/FLK.data$DIC_umol_kg
+
+TA_DIC_Sal_re<- ggplot(FLK.data) + MyTheme+
+  geom_point(aes (BestSalinity, TA_DIC, fill=Sub_region, shape=Zone),
+             alpha=0.6, size=.8)+
+   geom_smooth(aes(BestSalinity, TA_DIC, colour=Sub_region),
+               linetype=1, method = "lm", se=F)+
+   geom_smooth(aes(BestSalinity, TA_DIC),
+               linetype=1, method = "lm", colour="black")+
+  Zone_shapes4+
+  #Season_fill+
+  guides(shape="none")+
+  scale_y_continuous(#limits = c(1700, 2400),
+                     expand = c(0.02, 0.02),
+                     name=expression(paste("TA/DIC")))+
+  scale_x_continuous(#limits = c(1700, 2400),
+                     expand = c(0.02, 0.02),
+                     name=expression(paste("Salinity")))
+TA_DIC_Sal_re + facet_grid(~Zone)
+```
+
+* TA/DIC vs Salinity: Model II OLS regressions by zone and region
+
+```{r}
+#TA/DIC vs sal by regions and zone
+TADIC_Sal <- FLK.data %>%
                   group_by(Sub_region, Zone) %>%
                   do({model = lm(TA_DIC~BestSalinity, data=.)
                   # create model
                   data.frame(tidy(model), # get coefficient info
                   glance(model))})        # get model info
-#TA_DIC_Sal
+#TADIC_Sal
   
-kable(as.data.frame(TA_DIC_Sal[,1:8], format = "markdown"), 
+kable(as.data.frame(TADIC_Sal[,1:8], format = "markdown"), 
       caption = "Table: TA/DIC vs salinity by zone and region",
       digits = 3)%>% 
       kable_styling(bootstrap_options = c("striped", "condensed", 
                                       full_width = F), font_size = 11)
-#write.csv(TA_DIC_Sal, "FLK_results/TA_DIC_all.csv")
+#write.csv(TADIC_Sal, "FLK_results/TA_DIC_all.csv")
 
 ```
 
@@ -1235,27 +1274,25 @@ kable(as.data.frame(TA_DIC_Sal[,1:8], format = "markdown"),
 TA_DIA_sal_model<-lm(TA_DIC~BestSalinity * Sub_region * Zone, data=FLK.data)
     anova(TA_DIA_sal_model)
     #summary(TA_DIA_sal_model)
-    DIC_sal_aov<-aov(TA_DIA_sal_model)
-    
-    TADIC_PostH<-TukeyHSD(DIC_sal_aov, c("Sub_region", "Zone"), ordered = TRUE)
-    TADIC_PostH
-    
+    # DIC_sal_aov<-aov(TA_DIA_sal_model)
+    # TADIC_PostH<-TukeyHSD(DIC_sal_aov, c("Sub_region", "Zone"), ordered = TRUE)
+    # TADIC_PostH
     m.lst <- lstrends(TA_DIA_sal_model, "Sub_region", var="BestSalinity") 
     pairs(m.lst)
     
 TA_DIA_sal_model_in<-lm(TA_DIC~BestSalinity * Sub_region, 
                      data=FLK.data[FLK.data$Zone=="Inshore",])
     anova(TA_DIA_sal_model_in)
-    summary(TA_DIA_sal_model_in)
-    
+    #summary(TA_DIA_sal_model_in)
     m.lst <- lstrends(TA_DIA_sal_model_in, "Sub_region", var="BestSalinity") 
     pairs(m.lst)
 ```
 
-### Figure 4: TA, DIC, TA/DIC vs salinity
+## Figure 4: Summary by zone and season
+
+### Temperature
 
 ```{r}
-
 Tem_Zone<-ggarrange(Tep_Sal_Sea + facet_grid(~Zone) +
                             guides(fill = guide_legend(
                               override.aes=list(shape=21)),
@@ -1277,6 +1314,43 @@ Tem_Zone<-ggarrange(Tep_Sal_Sea + facet_grid(~Zone) +
           ncol = 1, nrow = 3, heights = c(1, .7, .9))
 Tem_Zone
 
+# Temp sal
+    TS_coef_OLS <- FLK.data %>%
+                    group_by(Zone) %>%
+                    do({model = lm(BestSalinity~Temperature_C, data=.)  # model
+                        data.frame(tidy(model), # get coefficient info
+                        glance(model))})        # get model info
+    kable(as.data.frame(TS_coef_OLS[,1:9], format = "markdown"), 
+          caption = "Table: Salinity vs Temperature linear regressions by zone",
+          digits = 3)%>% 
+    kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), font_size = 11)
+
+# Temp TA
+    TA_coef_OLS <- FLK.data %>%
+                    group_by(Zone) %>%
+                    do({model = lm(TA_umol_kg~Temperature_C, data=.)  # model
+                        data.frame(tidy(model), # get coefficient info
+                        glance(model))})        # get model info
+    kable(as.data.frame(TA_coef_OLS[,1:9], format = "markdown"), 
+          caption = "Table: TA vs Temperature linear regressions by zone",
+          digits = 3)%>% 
+    kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), font_size = 11)
+
+# Temp DIC
+    DIC_coef_OLS <- FLK.data %>%
+                    group_by(Zone) %>%
+                    do({model = lm(DIC_umol_kg~Temperature_C, data=.)  # model
+                        data.frame(tidy(model), # get coefficient info
+                        glance(model))})        # get model info
+    kable(as.data.frame(DIC_coef_OLS[,1:9], format = "markdown"), 
+          caption = "Table: DIC vs Temperature linear regressions by zone",
+          digits = 3)%>% 
+    kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), font_size = 11)
+```
+
+### Salinity
+
+```{r}
 Salinity_Zone<-ggarrange(TA_DIC_Sal + facet_grid(~Zone) +
                             guides(fill = guide_legend(
                               override.aes=list(shape=21)),
@@ -1298,9 +1372,78 @@ Salinity_Zone<-ggarrange(TA_DIC_Sal + facet_grid(~Zone) +
           ncol = 1, nrow = 3, heights = c(1, .7, .9))
 Salinity_Zone
 
-Zone_Plot<-ggarrange(Tem_Zone, Salinity_Zone,  ncol = 2 )
+##TA/DIC vs sal by zone
+    TA_DIC_Sal_Z <- FLK.data %>%
+                      group_by(Zone) %>%
+                      do({model = lm(TA_DIC~BestSalinity, data=.)
+                      # create model
+                      data.frame(tidy(model), # get coefficient info
+                      glance(model))})        # get model info
+    kable(as.data.frame(TA_DIC_Sal_Z[,1:8], format = "markdown"), 
+          caption = "Table: TA/DIC vs salinity by zone",
+          digits = 3)%>% 
+          kable_styling(bootstrap_options = c("striped", "condensed", 
+                                      full_width = F), font_size = 11)
 
+##TA
+    TA_coef_Zone <- FLK.data %>%
+                group_by(Zone) %>%
+                      do({model = lm(TA_umol_kg~BestSalinity, data=.)
+                      # create model
+                      data.frame(tidy(model), # get coefficient info
+                      glance(model))})        # get model info
+    kable(as.data.frame(TA_coef_Zone[,1:8], format = "markdown"), 
+          caption = "Table 1: TA vs salinity by zone",
+          digits = 3)%>% 
+      kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), font_size = 11)
+    #write.csv(TA_coef_Zone, "FLK_results/TA_Sal_Zone.csv")
+
+## DIC
+    DIC_coef_Zone <- FLK.data %>%
+                      group_by(Zone) %>%
+                      do({model = lm(DIC_umol_kg~BestSalinity, data=.)
+                      # create model
+                      data.frame(tidy(model), # get coefficient info
+                      glance(model))})        # get model info
+    kable(as.data.frame(DIC_coef_Zone[,1:9], format = "markdown"), 
+          caption = "Table 1: DIC vs salinity by zone",
+          digits = 3)%>% 
+    kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), font_size = 11)
+    #write.csv(DIC_coef_Zone, "FLK_results/DIC_Sal_Zone.csv")
+  
+```
+
+```{r}
+Zone_Plot<-ggarrange(Tem_Zone, Salinity_Zone,  ncol = 2 )
+Zone_Plot
 #ggsave(file="FLK_results/Sal_Te_Zone.svg", plot=Zone, dpi = 300, width=8, height=5)
+
+```
+
+##Figure 4: Summary salinity plots with region
+
+* TA and DIC vs Salinity (region and zone) - no season
+
+```{r,  fig.height=6, fig.width=8}
+Salinity_Region<-ggarrange(TA_Sal_Reg + facet_grid(~Zone) +
+                              guides(fill = guide_legend(
+                              override.aes=list(shape=21)),
+                              shape = "none")+
+                              theme(axis.title.x=element_blank(),
+                                  axis.text.x=element_blank(),
+                                  axis.ticks.x=element_blank()),
+                          DIC_Sal_Reg + facet_grid(~Zone)+
+                              theme(legend.position = "none",
+                                  strip.text.x = element_blank(),
+                                  axis.text.x = element_text(angle = 0)), 
+                          TA_DIC_Sal_re + facet_grid(~Zone)+
+                              theme(legend.position = "none",
+                                  strip.text.x = element_blank(),
+                                  axis.text.x = element_text(angle = 0)), 
+          #labels = c("A", "B"),
+          ncol = 1, nrow = 3, heights = c(1, .9, .9))
+Salinity_Region
+#ggsave(file="FLK_results/Salinity_region.svg", plot=Salinity_Region, dpi = 300, width=5, height=4)
 ```
 
 **Figure 4.** TA, DIC and TA/DIC linear regressions as a function of salinity. The vertical panels separate the locations by shelf zone. The black line and text on the top of each panel show the linear regression for all regions combined inside each zone. Additional colors differentiate the linear regressions by biogeographical region. Tables S7 and S8 shows the regression values per region and zone.
@@ -1631,6 +1774,7 @@ nTA_TA<- ggplot(FLK.data, aes (TA_umol_kg, nTA)) +
 
 nTA_TA_ext<-nTA_TA +
   scale_shape_manual(values=c(21,21,24, 24))+
+  guides(shape="none")+
   geom_point(aes (fill=Extreme, shape=Zone), alpha=0.4)
 #nTA_TA_ext
 
@@ -1645,7 +1789,7 @@ nTA_TA_plots<-ggarrange(nTA_TA_ext, nTA_TA_pre,
 nTA_TA_plots
 ```
 
-**Figure Supp X:** Linear regressions of Friss normalized total alkalinity (nTA, µmol kg−1) as a function of measured Total Alcalinity (TA, µmol kg−1)
+**Figure Supp X:** Linear regressions of Friss normalized total alkalinity (nTA, µmol kg−1) as a function of measured Total Alkalinity (TA, µmol kg−1)
 
 ### DIC vs Friss salinity normalized DIC
 
@@ -1665,6 +1809,7 @@ nDIC_DIC<- ggplot(FLK.data, aes (DIC_umol_kg, nDIC)) +
 
 nDIC_DIC_ext<-nDIC_DIC +
   scale_shape_manual(values=c(21,21,24, 24))+
+    guides(shape="none")+
   geom_point(aes (fill=Extreme, shape=Zone), alpha=0.4)
 #nDIC_DIC_ext
 
@@ -1695,6 +1840,7 @@ n36TA_TA<- ggplot(FLK.data, aes (TA_umol_kg, n36TA)) +
 
 n36TA_TA_ext<-n36TA_TA +
   scale_shape_manual(values=c(21,21,24, 24))+
+    guides(shape="none")+
   geom_point(aes (fill=Extreme, shape=Zone), alpha=0.4)
 #n36TA_TA_ext
 
@@ -1709,7 +1855,7 @@ n36TA_TA_plots<-ggarrange(n36TA_TA_ext, n36TA_TA_pre,
 n36TA_TA_plots
 ```
 
-**Figure Supp X:** Linear regressions of mean salinity normalized total alkalinity (n36TA, µmol kg−1) as a function of measured Total Alcalinity (TA, µmol kg−1)
+**Figure Supp X:** Linear regressions of mean salinity normalized total alkalinity (n36TA, µmol kg−1) as a function of measured Total Alkalinity (TA, µmol kg−1)
 
 ### DIC vs Salinity normalized DIC
 
@@ -1725,7 +1871,8 @@ n36DIC_DIC<- ggplot(FLK.data, aes (DIC_umol_kg, n36DIC)) +
 
 n36DIC_DIC_ext<-n36DIC_DIC +
   scale_shape_manual(values=c(21,21,24, 24))+
-  geom_point(aes (fill=Extreme, shape=Zone), alpha=0.4)
+  geom_point(aes (fill=Extreme, shape=Zone), alpha=0.4)+
+  guides(shape="none")
 #n36DIC_DIC_ext
 
 n36DIC_DIC_pre<-n36DIC_DIC +
@@ -3713,7 +3860,7 @@ Seasonal_range_d
 #write.csv(Seasonal_range_d, "FLK_results/Table_S8_Month_mean_range_d.csv", row.names = F)
 ```
 
-## - Delta month plots
+## - Delta month plots (Supplementary)
 
 ```{r}
 Delta_plot<- ggplot(WS.reef) +
@@ -3746,31 +3893,9 @@ Delta_plot_month<- ggplot(WS.reef) +
         theme(axis.title.x = element_blank(),
               legend.position = "bottom")
 
-DeltaYear_plot2<- ggplot(dMonth_Stats) +
-        MyTheme +  
-        #facet_grid(Zone~., scales = "free_y")+
-        facet_grid(~Zone, scales="free" )+
-        geom_hline(yintercept = 0, color="gray")+
-        theme(axis.title.x = element_blank(),
-              legend.position = "bottom",
-              axis.text.x = element_text(angle = 0))
-
-DeltaYear_plot3<- ggplot(dMonth_Stats) +
-        MyTheme +  
-        Zone_shapes3+
-        facet_grid(~Region)+
-        geom_hline(yintercept = 0, color="gray")+
-        theme(axis.title.x = element_blank(),
-              legend.position = "bottom",
-              axis.text.x = element_text(angle = 0))
-
-Frequency_plot<- ggplot(data = WS.reef) +
-      geom_vline(aes(xintercept = 0), linetype = "dashed")+
-      facet_grid(Zone~Sub_region, scales = "free_y")+ MyTheme
-
 ```
 
-### dTA
+### --dTA
 
 ```{r, echo=FALSE, fig.height=8, fig.width=8}
 TA_delta_m<- Delta_plot+
@@ -3829,88 +3954,7 @@ dTA_my
 
 **Figure Supp 4:** Total Alkalinity (TA) variation by the region and shelf position by (A) month of the year and (B) season.
 
-## Figure 4A - RAW DATA
-
-```{r}
-DTA_exp<- Delta_plot_month+
-   scale_y_continuous(#limits = c(-350,340),
-                     expand = c(0.05, 0.05),
-                     breaks = seq(-800, 800, 100),
-                     name=expression(paste(Delta,
-                          "TA  (", mu, "mol ", ~kg^-1, ")")))+
-  
-    geom_smooth(aes (x=as.numeric(Month2),
-                      y=dTA_MY, colour=Sub_region),
-                span=0.8, se=F)+
-    stat_summary(aes (x=as.numeric(Month2),
-                      y=dTA_MY, colour=Sub_region),
-                fun.data = "mean_cl_boot", geom = "errorbar", 
-                width = 0.2,
-                position=position_dodge(width=0.2))+
-    stat_summary(aes (x=as.numeric(Month2), 
-                      y=dTA_MY, fill=Sub_region),
-                 shape=21, size=1,
-                fun.data = "mean_cl_boot", geom = "point",
-                position=position_dodge(width=0.2))
-
-#DTA_exp
-
-TA_delta_Y2<- DeltaYear_plot2+
-    scale_y_continuous(#limits = c(-350,340),
-                     expand = c(0.03, 0.03),
-                     #breaks = seq(-800, 800, 50),
-                     name=expression(paste(Delta, "TA  (", mu, "mol ", ~kg^-1, ")")))+
-    stat_summary(aes (x=Season, y=dTA_mean, fill=Sub_region),
-                fun.data = "mean_cl_boot", geom = "bar",
-                position=position_dodge(width=0.8))+
-    stat_summary(aes (x=Season, y=dTA_mean, colour=Sub_region),
-                fun.data = "mean_cl_boot", geom = "errorbar", 
-                width = 0.2,
-                position=position_dodge(width=0.8))
-#TA_delta_Y2
-
-dTA_Y3<- DeltaYear_plot3+
-   scale_y_continuous(#limits = c(-210,70),
-                     expand = c(0.03, 0.03),
-                     #breaks = seq(0, 2500, 50),
-                     name=expression(paste("")))+
-    
-   stat_summary(aes (x=Zone, y=dTA_mean,
-                     fill=Sub_region, shape=Zone),
-                fun.data = "mean_cl_boot", geom = "point", 
-                size=1.5, 
-                position=position_dodge(width=0.5))+
-  stat_summary(aes (x=Zone, y=dTA_mean, colour=Sub_region),
-               fun.data = "mean_cl_boot", 
-               geom = "errorbar",  width = 0.2,
-               position=position_dodge(width=0.5))+
-  facet_grid(~Region)
-#dTA_Y3
-```
-
-```{r, echo=FALSE, fig.height=4, fig.width=8}
-# dTA_my2<-ggarrange(TA_exp,
-#                    TA_delta_Y2,
-#                    dTA_Y3,
-#           labels = c("A", "B", "C"),
-#           ncol = 1, nrow = 3, widths = c(2.5,2,1))
-# dTA_my2
-
-dTA_my3<-ggarrange(TA_delta_Y2 
-                   + theme(legend.position = "none",
-                           axis.text.x = element_blank()), 
-                   dTA_Y3 + 
-                     theme(legend.position = "none",
-                           axis.text.x = element_blank()),
-                          # axis.text.x = element_text(angle = 0,
-                          #                vjust = 0.5)),
-                    ncol = 2, nrow = 1, widths = c(1.5,0.5))
-dTA_my3
-```
-
-**Figure 4A:** Seasonal delta Total Alkalinity (dTA) variation by region and shelf position. Mean values and 95 CI
-
-### dDIC
+### --dDIC
 
 ```{r, echo=FALSE, fig.height=8, fig.width=8}
 DIC_delta_m<- Delta_plot+
@@ -3962,90 +4006,7 @@ dDIC_my
 
 **Figure Supp 5:** Total Alkalinity (TA) variation by the region and shelf position by (A) month of the year and (B) season.
 
-## Figure 4B - RAW DATA
-
-```{r}
-dDIC_exp<- Delta_plot_month+
-   scale_y_continuous(#limits = c(1700,2900),
-                     expand = c(0.05, 0.05),
-                     breaks = seq(-800, 800, 100),
-                     name=expression(paste(Delta, "DIC  (", mu, "mol ", ~kg^-1, ")")))+
-  
-    geom_smooth(aes (x=as.numeric(Month2),
-                      y=dDIC_MY, colour=Sub_region),
-                span=0.8, se=F)+
-    stat_summary(aes (x=as.numeric(Month2),
-                      y=dDIC_MY, colour=Sub_region),
-                fun.data = "mean_cl_boot", geom = "errorbar", 
-                width = 0.2,
-                position=position_dodge(width=0.2))+
-    stat_summary(aes (x=as.numeric(Month2), 
-                      y=dDIC_MY, fill=Sub_region),
-                 shape=21, size=1,
-                fun.data = "mean_cl_boot", geom = "point",
-                position=position_dodge(width=0.2))
-
-#dDIC_exp
-
-DIC_delta_Y2<- DeltaYear_plot2+
-    scale_y_continuous(#limits = c(-350,340),
-                     expand = c(0.05, 0.05),
-                     #breaks = seq(-800, 800, 50),
-                     name=expression(paste(Delta, "DIC  (", mu, "mol ", ~kg^-1, ")")))+
-    stat_summary(aes (x=Season, y=dDIC_mean, fill=Sub_region),
-                fun.data = "mean_cl_boot", geom = "bar",
-                position=position_dodge(width=0.8))+
-    stat_summary(aes (x=Season, y=dDIC_mean, colour=Sub_region),
-                fun.data = "mean_cl_boot", geom = "errorbar", 
-                width = 0.2,
-                position=position_dodge(width=0.8))
-  
-#DIC_delta_Y2
-
-dDIC_Y3<- DeltaYear_plot3+
-   scale_y_continuous(#limits = c(-185,130),
-                     expand = c(0.01, 0.01),
-                     #breaks = seq(0, 2500, 50),
-                     name=expression(paste("")))+
-    
-   stat_summary(aes (x=Zone, y=dDIC_mean, 
-                     fill=Sub_region, shape = Zone), 
-                fun.data = "mean_cl_boot", geom = "point", 
-                size=1.5,
-                position=position_dodge(width=0.5))+
-  stat_summary(aes (x=Zone, y=dDIC_mean, colour=Sub_region),
-                fun.data = "mean_cl_boot", 
-               geom = "errorbar",   width = 0.2,
-               position=position_dodge(width=0.5))
-#dDIC_Y3
-```
-
-```{r, echo=FALSE, fig.height=8, fig.width=8}
-# dDIC_my2<-ggarrange(dDIC_exp + facet_grid(Zone~.),
-#                     DIC_delta_Y2 + facet_grid(Zone~.) +
-#                                   theme(axis.title.y = element_blank()),
-#                     dDIC_Y3 + facet_grid(Zone~.) +
-#                                   theme(axis.title.y = element_blank()),
-#           labels = c("A", "B",  "C"),
-#           ncol = 3, nrow = 1, widths = c(2.5, 2, 1))
-# dDIC_my2
-
-dDIC_my3<-ggarrange(DIC_delta_Y2 
-                   + theme(legend.position = "none",
-                           strip.text.x = element_blank(),
-                          axis.text.x = element_blank()),
-                   dDIC_Y3 + 
-                     theme(legend.position = "none",
-                          strip.text.x = element_blank(),
-                          axis.text.x = element_blank()),
-                    ncol = 2, nrow = 1, widths = c(1.5,0.5))
-dDIC_my3
-
-```
-
-**Figure 4B:** Seasonal delta Dissolved Inorganic Carbon (dDIC) variation by region and shelf position.
-
-### dPCO2- RAW DATA
+### --dPCO2
 
 ```{r, echo=FALSE, fig.height=8, fig.width=8}
 pCO2_delta_m<- Delta_plot+
@@ -4097,65 +4058,7 @@ dpCO2_my
 
 **Figure S6:** pCO2 variation by the region and shelf position by (A) month of the year and (B) season.
 
-```{r}
-pdCO2_exp<- Delta_plot_month+
-   scale_y_continuous(#limits = c(1700,2900),
-                     expand = c(0.05, 0.05),
-                     #breaks = seq(1800, 2800, 100),
-                     name=expression(paste(Delta ~ pCO[2] , " (", mu, "atm)")))+
-  
-    geom_smooth(aes (x=as.numeric(Month2),
-                      y=dpCO2_MY, colour=Sub_region),
-                span=0.8, se=F)+
-    stat_summary(aes (x=as.numeric(Month2),
-                      y=dpCO2_MY, colour=Sub_region),
-                fun.data = "mean_cl_boot", geom = "errorbar", 
-                width = 0.2,
-                position=position_dodge(width=0.2))+
-    stat_summary(aes (x=as.numeric(Month2), 
-                      y=dpCO2_MY, fill=Sub_region),
-                 shape=21, size=1,
-                fun.data = "mean_cl_boot", geom = "point",
-                position=position_dodge(width=0.2))
-#pdCO2_exp
-
-pCO2_delta_Y2<- DeltaYear_plot2+
-    scale_y_continuous(#limits = c(-350,340),
-                     expand = c(0.1, 0.1),
-                     #breaks = seq(-800, 800, 50),
-                     name=expression(paste(Delta ~ pCO[2] , " (", mu, "atm)")))+
-    stat_summary(aes (x=Season, y=dpCO2_mean, fill=Sub_region),
-                fun.data = "mean_cl_boot", geom = "bar",
-                position=position_dodge(width=0.8))+
-    stat_summary(aes (x=Season, y=dpCO2_mean, colour=Sub_region),
-                fun.data = "mean_cl_boot", geom = "errorbar", 
-                width = 0.2,
-                position=position_dodge(width=0.8))
-#pCO2_delta_Y2
-
-dPCO2_Y3<- DeltaYear_plot2+
-   scale_y_continuous(#limits = c(2150,2550),
-                     expand = c(0.01, 0.01),
-                     #breaks = seq(0, 2500, 50),
-                     name=expression(paste("")))+
-    
-   stat_summary(aes (x=Sub_region, y=dpCO2_mean, fill=Sub_region),
-                fun.data = "mean_cl_boot", geom = "point", 
-                size=1.5, shape=21)+
-    stat_summary(aes (x=Sub_region, y=dpCO2_mean, colour=Sub_region),
-                fun.data = "mean_cl_boot", 
-               geom = "errorbar",  width = 0.2)
-#dPCO2_Y3
-```
-
-```{r, echo=FALSE, fig.height=8, fig.width=8}
-dpCO2_my2<-ggarrange(pdCO2_exp, pCO2_delta_Y2, dPCO2_Y3,
-          labels = c("A", "B", "C"),
-          ncol = 1, nrow = 3, widths = c(2,2,1))
-dpCO2_my2
-```
-
-### dpH - RAW DATA
+### --dpH
 
 ```{r, echo=FALSE, fig.height=8, fig.width=8}
 pH_delta_m<- Delta_plot+
@@ -4209,85 +4112,7 @@ dpH_my
 
 **Figure S7:** pH variation by the region and shelf position by (A) month of the year and (B) season.
 
-## Figure 4C - RAW DATA
-
-```{r, echo=FALSE, fig.height=4, fig.width=8}
-DpH_exp<- Delta_plot_month+
-   scale_y_continuous(#limits = c(1,5.5),
-                       name=(expression  
-                             (paste(Delta~pH))),
-                       breaks = seq(-5, 5, 0.1),
-                       expand = c(0.05, 0.05)
-                        ) +  
-    geom_smooth(aes (x=as.numeric(Month2),
-                      y=dpH_MY, colour=Sub_region),
-                span=0.8, se=F)+
-    stat_summary(aes (x=as.numeric(Month2),
-                      y=dpH_MY, colour=Sub_region),
-                fun.data = "mean_cl_boot", geom = "errorbar", 
-                width = 0.2,
-                position=position_dodge(width=0.2))+
-    stat_summary(aes (x=as.numeric(Month2), 
-                      y=dpH_MY, fill=Sub_region),
-                shape=21, size=1,
-                fun.data = "mean_cl_boot", geom = "point",
-                position=position_dodge(width=0.2))
-#DpH_exp
-
-pH_delta_Y2<- DeltaYear_plot2+
-    scale_y_continuous(#limits = c(-350,340),
-                     expand = c(0.01, 0.01),
-                     breaks = seq(-1, 1, 0.1),
-                     name=(expression  
-                             (paste(Delta~pH[calculated]))))+
-    stat_summary(aes (x=Season, y=dpH_mean, fill=Sub_region),
-                fun.data = "mean_cl_boot", geom = "bar",
-                position=position_dodge(width=0.8))+
-    stat_summary(aes (x=Season, y=dpH_mean, colour=Sub_region),
-                fun.data = "mean_cl_boot", geom = "errorbar", 
-                width = 0.2,
-                position=position_dodge(width=0.8))
-#pH_delta_Y2
-
-dpH_Y3<- DeltaYear_plot3+
-   scale_y_continuous(#limits = c(-0.11,0.145),
-                     expand = c(0.01, 0.01),
-                     breaks = seq(-1, 1, 0.05),
-                     name=expression(paste("")))+
-    
-   stat_summary(aes (x=Zone, y=dpH_mean, 
-                     fill=Sub_region, shape=Zone),
-                fun.data = "mean_cl_boot", geom = "point", 
-                size=1.5, position=position_dodge(width=0.5))+
-    stat_summary(aes (x=Zone, y=dpH_mean,
-                      colour=Sub_region),
-                fun.data = "mean_cl_boot", 
-               geom = "errorbar",   width = 0.2,
-               position=position_dodge(width=0.5))
-#dpH_Y3
-```
-
-```{r, echo=FALSE}
-# dpH_my2<-ggarrange(DpH_exp, 
-#                    pH_delta_Y2, 
-#                    dpH_Y3,
-#           labels = c("A", "B", "C"),
-#           ncol = 3, nrow = 1, widths = c(3,2,1))
-# dpH_my2
-
-dpH_my3<-ggarrange(pH_delta_Y2 
-                   + theme(legend.position = "none",
-                           strip.text.x = element_blank(),
-                           axis.text.x = element_blank()), 
-                   dpH_Y3 + 
-                     theme(legend.position = "none",
-                          strip.text.x = element_blank(),
-                          axis.text.x = element_blank()),
-                    ncol = 2, nrow = 1, widths = c(1.5,0.55))
-dpH_my3
-```
-
-### dOmega
+### --dOmega
 
 ```{r, echo=FALSE, fig.height=8, fig.width=8}
 Omega_delta_m<- Delta_plot+
@@ -4336,128 +4161,7 @@ dAra_my
 
 **Figure S8:** OMEGA variation by the region and shelf position by (A) month of the year and (B) season.
 
-## Figure 4D - RAW DATA
 
-```{r}
-DOmega_exp<- Delta_plot_month+
-   scale_y_continuous(#limits = c(1,5.5),
-                       name=(expression (paste(Delta ,
-                          ~Omega[Ar]))),
-                       breaks = seq(-3, 3, 0.5),
-                       expand = c(0.05, 0.05)
-                        ) +
-  
-    geom_smooth(aes (x=as.numeric(Month2),
-                      y=dOme_MY, colour=Sub_region),
-                span=0.8, se=F)+
-      stat_summary(aes (x=as.numeric(Month2),
-                      y=dOme_MY, colour=Sub_region),
-                fun.data = "mean_cl_boot", geom = "errorbar", 
-                width = 0.2,
-                position=position_dodge(width=0.2))+
-    stat_summary(aes (x=as.numeric(Month2), 
-                      y=dOme_MY, fill=Sub_region),
-                 shape=21, size=1,
-                fun.data = "mean_cl_boot", geom = "point",
-                position=position_dodge(width=0.2))+
-  facet_grid(Zone~.)
-
-#DOmega_exp
-
-om_delta_Y2<- DeltaYear_plot2+
-    scale_y_continuous(#limits = c(-350,340),
-                     expand = c(0.05, 0.05),
-                     #breaks = seq(-800, 800, 50),
-                      name=(expression (paste(Delta ,
-                          ~Omega[Ar]))))+
-    stat_summary(aes (x=Season, y=dAra_mean, fill=Sub_region),
-                fun.data = "mean_cl_boot", geom = "bar",
-                position=position_dodge(width=0.8))+
-    stat_summary(aes (x=Season, y=dAra_mean, colour=Sub_region),
-                fun.data = "mean_cl_boot", geom = "errorbar", 
-                width = 0.2,
-                position=position_dodge(width=0.8))+
-  theme(panel.spacing = unit(0.8, "lines"))
-#om_delta_Y2
-
-dOm_Y3<- DeltaYear_plot3+
-   scale_y_continuous(#limits = c(-0.9, 1),
-                     expand = c(0.02, 0.02),
-                     breaks = seq(-5, 5, 0.5),
-                     name=(expression (paste(Delta ,
-                          ~Omega[Ar]))))+
-    
-   stat_summary(aes (x=Zone, y=dAra_mean, 
-                     fill=Sub_region, shape=Zone),
-                fun.data = "mean_cl_boot", geom = "point", 
-                size=1.5, position=position_dodge(width=0.5))+
-    stat_summary(aes (x=Zone, y=dAra_mean, colour=Sub_region),
-                fun.data = "mean_cl_boot", 
-                geom = "errorbar",   width = 0.2,
-               position=position_dodge(width=0.5))
-#dOm_Y3
-```
-
-```{r, echo=FALSE, fig.height=4, fig.width=8}
-# dOm_my2<-ggarrange(DOmega_exp + facet_grid(Zone~.),
-#                    om_delta_Y2 + facet_grid(Zone~.) +
-#                                  theme(axis.title.y = element_blank()),
-#                    dOm_Y3 + facet_grid(Zone~.) +
-#                                   theme(axis.title.y = element_blank()),
-#           labels = c("A", "B", "C"),
-#           ncol = 3, nrow = 1, widths = c(2.5,2,1))
-# dOm_my2
-
-dOm_my3<-ggarrange(om_delta_Y2 
-                   + theme(legend.position = "none",
-                           strip.text.x = element_blank()), 
-                   dOm_Y3 + 
-                     theme(legend.position = "none",
-                            strip.text.x = element_blank(),
-                            axis.title.y = element_blank(),
-                            axis.text.x = element_text(angle = 0,
-                                         vjust = 0.5)),
-                   
-                    ncol = 2, nrow = 1, widths = c(1.5,0.5))
-dOm_my3
-
-```
-
-# - Figure 4: Seasonal Δ and yearly sums - RAW DATA
-
-```{r}
-Seasonality_deltas<-ggarrange(
-          TA_delta_Y2 +theme(legend.position = "none",
-                              axis.text.x=element_blank()),
-          DIC_delta_Y2+theme(legend.position = "none",
-                              strip.text.x = element_blank(),
-                              axis.text.x=element_blank()), 
-          pH_delta_Y2+theme(legend.position = "none",
-                              strip.text.x = element_blank(),
-                              axis.text.x=element_blank()), 
-          om_delta_Y2+ theme(panel.spacing = unit(0.8, "lines"),
-                              strip.text.x = element_blank()),
-          #TA_DIC_sum,
-          nrow = 4, 
-          #labels = c("A", "B", " C"),
-          heights =c(1, 0.9, 0.9, 1.2))
-          #widths = c(1, 1, 0.9))
-Seasonality_deltas
-
-Seasonality_deltas3<-ggarrange(
-          dTA_my3,
-          dDIC_my3,
-          dpH_my3,
-          dOm_my3,
-          nrow = 4, 
-          #labels = c("A", "B", " C"),
-          heights =c(1, 0.9, 0.9, 1))
-Seasonality_deltas3
-
-#ggsave(file="FLK_results/Figures/Fig_4/Fig_4_delta_season.svg", plot=Seasonality_deltas, dpi = 300, width=6, height=6)
-```
-
-**Figure 4 (RAW): Seasonal inshore-ocean gradients in the Florida Keys. (A) Seasonal ΔTA. (B) Seasonal ΔDIC. (C) Seasonal pH, and (D) Seasonal ΩAr.** The bars represent the mean Δ values per season, region, and shelf position (± 95 CI).
 
 ## 5.4 Delta season values
 
@@ -4732,7 +4436,7 @@ ofshore.season.data<-season.data[season.data$Zone=="Offshore", ]
 
 ### LMER - TA season
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
   hist(season.data$TA_umol_kg)
   shapiro.test(season.data$TA_umol_kg) # Normality rejected
 # 
@@ -4778,7 +4482,7 @@ ofshore.season.data<-season.data[season.data$Zone=="Offshore", ]
 
 ### LMER - all dTA - MODEL 13
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
   hist(season.data$dTA_MY)
   shapiro.test(season.data$dTA_MY) # Normality rejected
 # 
@@ -5856,10 +5560,10 @@ Complete models
     anova_Temp_0 %>% kable("html", digits=2, 
         caption="Initial temperature models fixed factors: Year*Region") %>% 
       kable_styling(bootstrap_options = "striped", full_width = F) %>% 
-      pack_rows(., "Omega inshore", 1, 3) %>% # groups rows with label
-      pack_rows(., "Omega mid-channel", 4, 6)  %>% # groups rows with label
-      pack_rows(., "Omega offshore", 7, 9) %>% # groups rows with label
-      pack_rows(., "Omega ocean", 10, 12)  
+      pack_rows(., "Temperature inshore", 1, 3) %>% # groups rows with label
+      pack_rows(., "Temperature mid-channel", 4, 6)  %>% # groups rows with label
+      pack_rows(., "Temperature offshore", 7, 9) %>% # groups rows with label
+      pack_rows(., "Temperature ocean", 10, 12)  
 ```
 
 ```{r}
@@ -5885,10 +5589,10 @@ Complete models
     ranova_Temp_0 %>% kable("html", digits=2,
          caption="Initial temperature models random factors: Month+Station") %>% 
       kable_styling(bootstrap_options = "striped", full_width = F) %>% 
-      pack_rows(., "Omega inshore", 1, 3) %>% # groups rows with label
-      pack_rows(., "Omega mid-channel", 4, 6)  %>% # groups rows with label
-      pack_rows(., "Omega offshore", 7, 9) %>% # groups rows with label
-      pack_rows(., "Omega ocean", 10, 12)  
+      pack_rows(., "Temperature inshore", 1, 3) %>% # groups rows with label
+      pack_rows(., "Temperature mid-channel", 4, 6)  %>% # groups rows with label
+      pack_rows(., "Temperature offshore", 7, 9) %>% # groups rows with label
+      pack_rows(., "Temperature ocean", 10, 12)  
 
 ```
 
@@ -5913,7 +5617,7 @@ Temp_models<-list("Inshore" = Temp_in,
                    "Ocean" = Temp_oc)
 modelsummary(Temp_models, stars = TRUE, 
             #statistic = c('std.error', 'p.value', 'conf.int'),
-             title = 'Final Omega model outputs (dropped factors)',
+             title = 'Final temperature model outputs (dropped factors)',
              coef_map=factor_order)
 #modelsummary(Temp_models, estimate = "p.value")
 
@@ -6348,7 +6052,7 @@ modelsummary(TA_models, stars = TRUE,
 
 ```
 
-```{r TA model plot}
+```{r TA model plot, fig.height=5, fig.width=8}
 Trends_TA<-ggarrange(In_TA_Modeled+ theme(
                                           axis.text.x=element_blank(),
                                           legend.position = "none"),
@@ -6401,7 +6105,7 @@ Trends_c2
 
 ```
 
-```{r, echo=TRUE}
+```{r, echo=TRUE, fig.height=4, fig.width=6}
 ## Model with all data
 DIC_all_o<-lmer(DIC_umol_kg~Year * Zone * Sub_region + (1|Month)+           
                                     (1|SiteID), data=Trends.data)
@@ -6430,7 +6134,7 @@ DIC_all_1<-lmer(DIC_umol_kg ~ Year + Zone + Sub_region +
 
 ## Inshore
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 # Inshore DIC
   hist(Trends.inshore$DIC_umol_kg)
   shapiro.test(Trends.inshore$DIC_umol_kg) # Normality NOT rejected
@@ -6508,7 +6212,7 @@ DIC_all_1<-lmer(DIC_umol_kg ~ Year + Zone + Sub_region +
 
 ## Mid channel
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 hist(Trends.midchanel$DIC_umol_kg)
 shapiro.test(Trends.midchanel$DIC_umol_kg)# Normality rejected
 
@@ -6591,7 +6295,7 @@ DIC_mc<-lmer(DIC_umol_kg ~ Year + Sub_region + (1 | Month),
 
 ## Offshore
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 hist(Trends.offshore$DIC_umol_kg)
 shapiro.test(Trends.offshore$DIC_umol_kg)# Normality rejected
 
@@ -6665,7 +6369,7 @@ plot(DIC_of)
 
 ## Oceanic
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 hist(Trends.ocean$DIC_umol_kg)
 shapiro.test(Trends.ocean$DIC_umol_kg)# Normality NOT rejected
 
@@ -6916,7 +6620,7 @@ anova(Omega_all_1, Omega_all_3)
 
 ## Inshore
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 # Inshore Omega
   hist(Trends.inshore$Aragonite_Sat_W)
   shapiro.test(Trends.inshore$Aragonite_Sat_W) # Normality rejected
@@ -6996,7 +6700,7 @@ anova(Omega_all_1, Omega_all_3)
 
 ## Mid channel
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 hist(Trends.midchanel$Aragonite_Sat_W)
 shapiro.test(Trends.midchanel$Aragonite_Sat_W)# Normality rejected
 
@@ -7084,7 +6788,7 @@ Omega_mc<-lmer(Aragonite_Sat_W ~ Year + Sub_region + (1 | Month),
 
 ## Offshore
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 hist(Trends.offshore$Aragonite_Sat_W)
 shapiro.test(Trends.offshore$Aragonite_Sat_W)# Normality rejected
 
@@ -7157,7 +6861,7 @@ Omega_of<-lmer(Aragonite_Sat_W ~ Year + Sub_region + (1 | Month),
 
 ## Oceanic
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 hist(Trends.ocean$Aragonite_Sat_W)
 shapiro.test(Trends.ocean$Aragonite_Sat_W)# Normality NOT rejected
 
@@ -7405,14 +7109,10 @@ anova(pCO2_all_o, pCO2_all_o_1, pCO2_all_o_3)
     ranova(pCO2_all_o_1)
 
 # Obtain slopes
-    
-    ranef(pCO2_all_o_1)
-    fixef(pCO2_all_o_1)
-
-    coef(pCO2_all_o_1)$Month
-    coef(pCO2_all_o_1)$Zone
-    
-    
+    # ranef(pCO2_all_o_1)
+    # fixef(pCO2_all_o_1)
+    # coef(pCO2_all_o_1)$Month
+    # coef(pCO2_all_o_1)$Zone
   m.lst <- lstrends(pCO2_all_o_1, "Zone", var="Year")
   m.lst
   pairs(m.lst)
@@ -7421,7 +7121,7 @@ anova(pCO2_all_o, pCO2_all_o_1, pCO2_all_o_3)
 
 ## Inshore
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 
 # Inshore pCO2
   hist(Trends.inshore$pCO2_uatm)
@@ -7491,7 +7191,7 @@ pCO2_in<-lmer(pCO2_uatm ~ (1|Month)+(1|SiteID), data=Trends.inshore)
 
 ## Mid channel
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 hist(Trends.midchanel$pCO2_uatm)
 shapiro.test(Trends.midchanel$pCO2_uatm)# Normality NOT rejected
 
@@ -7506,8 +7206,9 @@ pCO2_mc_0<-lmer(pCO2_uatm~Year * Sub_region + (1|Month) +
 
 pCO2_mc<-lmer(pCO2_uatm ~ Year + Sub_region + (1 | Month), 
               data = Trends.midchanel)
-  summary(pCO2_mc) 
+   summary(pCO2_mc) 
    anova(pCO2_mc)
+  
    plot(pCO2_mc)
    par(mfrow=c(1,2))
    qqnorm(resid(pCO2_mc))
@@ -7541,8 +7242,7 @@ pCO2_mc<-lmer(pCO2_uatm ~ Year + Sub_region + (1 | Month),
   plot_label2 <- expression("Year^-1")
   
   
-# Plot raw data point and fitted model 
-  
+# Plot raw data point and fitted model
   Mc_pCO2_Modeled<-Long_plot2+ 
      scale_y_continuous(name=expression(paste(pCO[2], ~" (", mu, " atm)")),
                        limits = c(200,800),
@@ -7567,7 +7267,7 @@ pCO2_mc<-lmer(pCO2_uatm ~ Year + Sub_region + (1 | Month),
 
 ## Offshore
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 hist(Trends.offshore$pCO2_uatm)
 shapiro.test(Trends.offshore$pCO2_uatm)# Normality rejected
 
@@ -7637,7 +7337,7 @@ pCO2_of<-lmer(pCO2_uatm ~ Year + Sub_region + (1 | Month),
 
 ## Oceanic
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 hist(Trends.ocean$pCO2_uatm)
 shapiro.test(Trends.ocean$pCO2_uatm)# Normality rejected
 
@@ -7737,7 +7437,6 @@ Complete models
 ```
 
 ```{r, all random factors summary - pCO2}
-
 # R-ANOVAs    
     rav.pCO2_in_0 <- data.frame (ranova(pCO2_in_0))
     rav.pCO2_mc_0 <- data.frame (ranova(pCO2_mc_0) )
@@ -7863,19 +7562,13 @@ anova(pH_all_o, pH_all_o_1, pH_all_o_3)
     summary(pH_all_o_1)
     anova(pH_all_o_1)
     ranova(pH_all_o_1)
-    
-  
-    ranef(pH_all_o_1)
-    fixef(pH_all_o_1)
-
-    coef(pH_all_o_1)$Month
-    coef(pH_all_o_1)$Zone
-    
-    
-  m.lst <- lstrends(pH_all_o_1, "Zone", var="Year")
-  m.lst
-  pairs(m.lst)
-  
+    # ranef(pH_all_o_1)
+    # fixef(pH_all_o_1)
+    # coef(pH_all_o_1)$Month
+    # coef(pH_all_o_1)$Zone
+    m.lst <- lstrends(pH_all_o_1, "Zone", var="Year")
+    m.lst
+    pairs(m.lst)
   
   # Create a new data frame for independent variables  
   Newdata<-expand.grid(Zone=unique(Trends.data$Zone),
@@ -7894,7 +7587,6 @@ pH_Modeled<-Long_plot2+ facet_grid(~Zone)+
                        limits=c(7.80, 8.28),
                        breaks = seq(0, 10, 0.1),  
                        expand = c(0.02, 0.02)) +
-    
       geom_point(data=Trends.data, 
                                aes(y=pH_calculated, x=Date, 
                                    #fill = Sub_region), 
@@ -7905,12 +7597,12 @@ pH_Modeled<-Long_plot2+ facet_grid(~Zone)+
       #annotate(geom="text", x = as.Date(xs), y = ys, parse=TRUE,
       #        label =paste0(as.character(plot_label, plot_label2, sep = " ")),
       #        size=4)
-  pH_Modeled
+pH_Modeled
 ```
 
 ## Inshore
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 # Inshore pH
 hist(Trends.inshore$pH_calculated)
 shapiro.test(Trends.inshore$pH_calculated)# Normality rejected
@@ -7939,7 +7631,6 @@ pH_in<-lmer(pH_calculated ~ Sub_region + (1 | Month) + (1 | SiteID),
         pH_in.emmc<-multcomp::cld(pH_in.emmc)
         pH_in.emmc<-pH_in.emmc[order(pH_in.emmc$Sub_region),]
   pH_in.emmc
-  
 #write.csv(pH_in.emmc, "FLK_results/Model_5_LTpH_POST.csv")
 ```
 
@@ -7947,7 +7638,7 @@ pH_in<-lmer(pH_calculated ~ Sub_region + (1 | Month) + (1 | SiteID),
 # Predict values  
   In_pH_Pred <- predict(pH_in, newdata=In_Newdata, 
                         re.form=NA, level=0, asList = FALSE)
-    In_pH_Pred <-cbind(In_Newdata, In_pH_Pred)
+  In_pH_Pred <-cbind(In_Newdata, In_pH_Pred)
   In_pH_Pred$Date<-as.Date(as.character(In_pH_Pred$Year), format = "%Y")
   
 # Model summary for slope labels 
@@ -7964,7 +7655,6 @@ pH_in<-lmer(pH_calculated ~ Sub_region + (1 | Month) + (1 | SiteID),
                        limits=c(7.80, 8.28),
                        breaks = seq(0, 10, 0.1),  
                        expand = c(0.02, 0.02)) +
-    
       geom_point(data=Trends.inshore, 
                                aes(y=pH_calculated, x=Date, 
                                    fill = Sub_region), 
@@ -8117,12 +7807,11 @@ pH_of<-lmer(pH_calculated ~ Year + Sub_region + (1 | Month),
            label =paste0(as.character(plot_label, plot_label2, sep = " ")),
            size=4)
   Of_pH_Modeled
-  
 ```
 
 ## Oceanic
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 hist(Trends.ocean$pH_calculated)
 shapiro.test(Trends.ocean$pH_calculated)# Normality rejected
 
@@ -8337,7 +8026,7 @@ dTA_all+facet_grid(~Zone) +
 
 ## Inshore
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 # Inshore dTA
 hist(Trends.inshore$dTA_MY)
 shapiro.test(Trends.inshore$dTA_MY)# Normality rejected
@@ -8369,7 +8058,7 @@ dTA_in<-lmer(dTA_MY ~ Sub_region + (1 | Month),
 
 ## Mid channel
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 hist(Trends.midchanel$dTA_MY)
 shapiro.test(Trends.midchanel$dTA_MY)# Normality rejected
 
@@ -8395,7 +8084,7 @@ dTA_mc<-lmer(dTA_MY ~ (1 | Month) + (1|SiteID),
 
 ## Offshore
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 hist(Trends.offshore$dTA_MY)
 shapiro.test(Trends.offshore$dTA_MY)# Normality rejected
 
@@ -8548,7 +8237,7 @@ dDIC_all+facet_grid(~Zone) +
 
 ## Inshore
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 # Inshore dDIC
 hist(Trends.inshore$dDIC_MY)
 shapiro.test(Trends.inshore$dDIC_MY)# Normality rejected
@@ -8579,7 +8268,7 @@ dDIC_in<-lmer(dDIC_MY ~ Sub_region + (1 | Month)+ (1 | SiteID),
 
 ## Mid channel
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 hist(Trends.midchanel$dDIC_MY)
 shapiro.test(Trends.midchanel$dDIC_MY)# Normality rejected
 
@@ -8609,7 +8298,7 @@ dDIC_mc<-lmer(dDIC_MY ~ Sub_region + (1 | Month),
 
 ## Offshore
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=4, fig.width=6}
 hist(Trends.offshore$dDIC_MY)
 shapiro.test(Trends.offshore$dDIC_MY)# Normality rejected
 
