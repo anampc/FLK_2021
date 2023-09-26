@@ -111,23 +111,6 @@ CC.data<-read.csv("Data/ws-mysql-v3.csv", header = T)
                        ToD = as.numeric(format(datetime, format = '%H')) +
                          (as.numeric(format(datetime, format = '%M')) / 60))
     summary(CC.data)
-
-
-   # Numerical data
-    # CC.data$Latitude <-as.numeric((as.character(CC.data$Latitude)))
-    # CC.data$Longitude <-as.numeric((as.character(CC.data$Longitude)))
-   
-    # CC.data$Temperature_C <-
-    #    as.numeric((as.character(CC.data$Temperature_C)))
-    # Temperature_NA2<-CC.data[(is.na(CC.data$Temperature_C)),]
-  
-    # CC.data$TA <-as.numeric((as.character(CC.data$TA)))
-    # CC.data$DIC <-as.numeric((as.character(CC.data$DIC)))
-    
-    # CC.data$pH <-as.numeric((as.character(CC.data$pH)))
-    # CC.data$pCO2 <-as.numeric((as.character(CC.data$pCO2)))
-    # CC.data$Aragonite_Sat_W<-
-    #   as.numeric((as.character(CC.data$Aragonite_Sat_W)))
 ```
 
 Notes:
