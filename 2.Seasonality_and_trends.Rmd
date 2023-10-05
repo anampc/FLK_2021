@@ -5322,6 +5322,41 @@ Figure_4
 
 ```
 
+# 5-6 Contribution to Ar
+
+```{r}
+Contributions<-FLK.data[, c( "DIC_umol_kg", "TA_umol_kg", "pH_calculated", "pCO2_uatm", "Aragonite_Sat_W", "Temperature_C", "BestSalinity", "nTA", "nDIC", "n36TA", "n36DIC", "SiteID", "Year", "Date", "Month2","Month", "Months", "MY", "MoY", "Season", "Precipitation", "Sub_region", "Zone", "Extreme")]
+Contributions$Depth<-0
+Contributions<-Contributions [complete.cases(Contributions),]
+summary(Contributions)
+```
+
+```{r}
+
+library(seacarb)
+# Run seacarb changing TA
+seacarb.output = carb(
+  #flag refers to which two CO2 system variables are being used; here we are using ALK and DIC
+  flag = 15,
+ 
+  #need to convert TA from umol/kg to mol/kg
+  var1 = Contributions$TA_umol_kg / 10 ^ 6,
+ 
+  #need to convert DIC from umol/kg to mol/kg
+  var2 = Contributions$DIC_umol_kg / 10 ^ 6,
+ 
+  #salinity, in psu
+  S = Contributions$Salinity_Bottle,
+ 
+  #temperature, in deg C
+  T = Contributions$Temperature_C,
+ 
+  #pressure, need to convert from dbar to bar
+  P = Contributions$Depth, 
+  #Patm=1.0, Pt=0, Sit=0, pHscale="T", kf="pf", k1k2="l", ks="d", b="u74"
+  )
+```
+
 # 6 LMER long trend MODELS
 
 -   The F statistic in a regression model is used to test whether there is a linear model of the data - overall, or equivalently that your model is no better than a model with just the intercept.
