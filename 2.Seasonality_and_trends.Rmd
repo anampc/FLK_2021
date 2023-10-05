@@ -5334,28 +5334,178 @@ summary(Contributions)
 ```{r}
 
 library(seacarb)
+
 # Run seacarb changing TA
-seacarb.output = carb(
-  #flag refers to which two CO2 system variables are being used; here we are using ALK and DIC
+seacarb.TA = carb(
   flag = 15,
- 
-  #need to convert TA from umol/kg to mol/kg
-  var1 = Contributions$TA_umol_kg / 10 ^ 6,
- 
-  #need to convert DIC from umol/kg to mol/kg
+  var1 = mean_Op$OTA / 10 ^ 6, #mean oceanic TA
   var2 = Contributions$DIC_umol_kg / 10 ^ 6,
- 
-  #salinity, in psu
-  S = Contributions$Salinity_Bottle,
- 
-  #temperature, in deg C
+  S = Contributions$BestSalinity,
   T = Contributions$Temperature_C,
- 
-  #pressure, need to convert from dbar to bar
+  P = Contributions$Depth, 
+  #Patm=1.0, Pt=0, Sit=0, pHscale="T", kf="pf", k1k2="l", ks="d", b="u74"
+  )
+
+# Run seacarb changing DIC
+seacarb.DIC = carb(
+  flag = 15,
+  var1 = Contributions$TA_umol_kg / 10 ^ 6, #mean oceanic TA
+  var2 = mean_Op$ODIC / 10 ^ 6,
+  S = Contributions$BestSalinity,
+  T = Contributions$Temperature_C,
+  P = Contributions$Depth, 
+  #Patm=1.0, Pt=0, Sit=0, pHscale="T", kf="pf", k1k2="l", ks="d", b="u74"
+  )
+
+# Run seacarb changing Salinity
+seacarb.Sal = carb(
+  flag = 15,
+  var1 = Contributions$TA_umol_kg / 10 ^ 6, #mean oceanic TA
+  var2 = Contributions$DIC_umol_kg / 10 ^ 6,
+  S = mean_Op$OSal,
+  T = Contributions$Temperature_C,
+  P = Contributions$Depth, 
+  #Patm=1.0, Pt=0, Sit=0, pHscale="T", kf="pf", k1k2="l", ks="d", b="u74"
+  )
+
+# Run seacarb changing Temp
+seacarb.Temp = carb(
+  flag = 15,
+  var1 = Contributions$TA_umol_kg / 10 ^ 6, #mean oceanic TA
+  var2 = Contributions$DIC_umol_kg / 10 ^ 6,
+  S = Contributions$BestSalinity,
+  T = mean_Op$OTem ,
   P = Contributions$Depth, 
   #Patm=1.0, Pt=0, Sit=0, pHscale="T", kf="pf", k1k2="l", ks="d", b="u74"
   )
 ```
+
+
+```{r}
+Ar.contributions<-cbind(Contributions$Aragonite_Sat_W, seacarb.TA$OmegaAragonite, seacarb.DIC$OmegaAragonite,
+                        seacarb.Sal$OmegaAragonite, seacarb.Temp$OmegaAragonite)
+colnames(Ar.contributions) <- c("Aragonite", "meanTA", "meanDIC", "meanSal", "meanTemp")
+Ar.contributions<-as.data.frame(Ar.contributions)
+
+Ar.contributions$Arg_TA<-(Ar.contributions$Aragonite-Ar.contributions$meanTA)
+Ar.contributions$Arg_DIC<-(Ar.contributions$Aragonite-Ar.contributions$meanDIC)
+Ar.contributions$Arg_Sal<-(Ar.contributions$Aragonite-Ar.contributions$meanSal)
+Ar.contributions$Arg_Tem<-(Ar.contributions$Aragonite-Ar.contributions$meanTemp)
+
+Contributions<-cbind(Contributions, Ar.contributions)
+```
+
+```{r}
+Cont_arg_plot_TA<- ggplot(Contributions, aes(x=Months, y=Arg_TA, fill=Sub_region)) +
+        MyTheme +  
+        facet_grid(~Zone)+
+        #geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
+        Zone_shapes4+
+        geom_hline(yintercept = 0, colour="gray")+
+        stat_summary(aes (x=as.numeric(Months),
+                          y=Arg_TA, colour=Sub_region),
+                    fun.data = "mean_cl_boot", geom = "errorbar", 
+                    width = 0.2,
+                    position=position_dodge(width=0.3))+
+        stat_summary(aes (x=as.numeric(Months), 
+                          y=Arg_TA, fill=Sub_region, shape=Zone),
+                    size=2,
+                fun.data = "mean_cl_boot", geom = "point",
+                position=position_dodge(width=0.3))+
+        scale_y_continuous(#limits = c(-2.5,2.5),
+                       name=(expression("TA contribution"~Omega[Ar])),
+                       breaks = seq(-2, 2, 1),  
+                       expand = c(0.01, 0.01))
+        
+#Cont_arg_plot_TA
+
+Cont_arg_plot_DIC<- ggplot(Contributions, aes(x=Months, y=Arg_DIC, fill=Sub_region)) +
+        MyTheme +  
+        facet_grid(~Zone)+
+        geom_hline(yintercept = 0, colour="gray")+
+        #geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
+        Zone_shapes4+
+        stat_summary(aes (x=as.numeric(Months),
+                          y=Arg_DIC, colour=Sub_region),
+                    fun.data = "mean_cl_boot", geom = "errorbar", 
+                    width = 0.2,
+                    position=position_dodge(width=0.3))+
+        stat_summary(aes (x=as.numeric(Months), 
+                          y=Arg_DIC, fill=Sub_region, shape=Zone),
+                    size=2,
+                    fun.data = "mean_cl_boot", geom = "point",
+                    position=position_dodge(width=0.3))+
+        scale_y_continuous(#limits = c(-2.5,2.5),
+                       name=(expression("DIC contribution"~Omega[Ar])),
+                       breaks = seq(-2, 2, 1),  
+                       expand = c(0.01, 0.01))
+#Cont_arg_plot_DIC
+
+Cont_arg_plot_Sal<- ggplot(Contributions, aes(x=Months, y=Arg_Sal, fill=Sub_region)) +
+        MyTheme +  
+        facet_grid(~Zone)+
+        Zone_shapes4+
+        geom_hline(yintercept = 0, colour="gray")+
+       # geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
+        stat_summary(aes (x=as.numeric(Months),
+                          y=Arg_Sal, colour=Sub_region),
+                    fun.data = "mean_cl_boot", geom = "errorbar", 
+                    width = 0.2,
+                    position=position_dodge(width=0.3))+
+        stat_summary(aes (x=as.numeric(Months), 
+                          y=Arg_Sal, fill=Sub_region, shape=Zone),
+                    size=2,
+                fun.data = "mean_cl_boot", geom = "point",
+                position=position_dodge(width=0.3))+
+         scale_y_continuous(#limits = c(-2.5,2.5),
+                       name=(expression("Salinity contribution"~Omega[Ar])),
+                       breaks = seq(-0.1, 0.1, 0.1),  
+                       expand = c(0.01, 0.01))
+#Cont_arg_plot_Sal
+
+Cont_arg_plot_Temp<- ggplot(Contributions, aes(x=Months, y=Arg_Tem, fill=Sub_region)) +
+        MyTheme +  
+        facet_grid(~Zone)+
+        geom_hline(yintercept = 0, colour="gray")+
+        #geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
+        Zone_shapes4+
+        stat_summary(aes (x=as.numeric(Months),
+                          y=Arg_Tem, colour=Sub_region),
+                    fun.data = "mean_cl_boot", geom = "errorbar", 
+                    width = 0.2,
+                    position=position_dodge(width=0.3))+
+        stat_summary(aes (x=as.numeric(Months), 
+                          y=Arg_Tem, fill=Sub_region, shape=Zone),
+                    size=2,
+                    fun.data = "mean_cl_boot", geom = "point",
+                    position=position_dodge(width=0.3))+
+        scale_y_continuous(#limits = c(-2.5,2.5),
+                       name=(expression("Salinity contribution"~Omega[Ar])),
+                       breaks = seq(-0.1, 0.1, 0.1),  
+                       expand = c(0.01, 0.01))
+#Cont_arg_plot_Temp
+
+Omega_cont_plot<-ggarrange(Cont_arg_plot_TA+ theme(
+                                          axis.text.x=element_blank(),
+                                          axis.title.x = element_blank()),
+                  Cont_arg_plot_DIC+ theme(legend.position = "none",
+                                           axis.text.x=element_blank(),
+                                           axis.title.x = element_blank(),
+                                           strip.text.x = element_blank()),
+                                
+                  Cont_arg_plot_Sal + theme(legend.position = "none",
+                                           axis.text.x=element_blank(),
+                                           axis.title.x = element_blank(),
+                                           strip.text.x = element_blank()),
+                                
+                  Cont_arg_plot_Temp + theme(legend.position = "none",
+                                        strip.text.x = element_blank()),
+                                           
+          ncol = 1, nrow = 4, heights = c(1.3, 0.9, 0.9, 1.2))
+Omega_cont_plot
+
+```
+
 
 # 6 LMER long trend MODELS
 
@@ -8459,7 +8609,123 @@ Trends_Modeled
 
 **Figure 2: Ocean acidification trends in the Florida Reef Tract.** (A) The partial pressure of the CO2, (B) pH, and (C) Aragonite saturation state (Ωar). The colors represent the biogeographical regions and the panels separate the locations by shelf zone. Text on the top of each panel shows the coefficient of change in the parameter per year (for significant trends). Solid lines represent models with significant trends (year\<0.05). Multiple colored lines are depicted for models where region was significant (region p\<0.05). Dashed lines represent the intercepts of models with non significant trends (year p\>0.05).
 
-# 7. PCA
+# 7. Contribution to trends
+
+```{r}
+Tre_arg_plot_TA<- ggplot(Contributions, aes(x=Year, y=Arg_TA, fill=Sub_region)) +
+        MyTheme +  
+        facet_grid(~Zone)+
+        #geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
+        Zone_shapes4+
+        geom_hline(yintercept = 0, colour="gray")+
+        stat_summary(aes (x=as.numeric(Year),
+                          y=Arg_TA, colour=Sub_region),
+                    fun.data = "mean_cl_boot", geom = "errorbar", 
+                    width = 0.2,
+                    position=position_dodge(width=0.3))+
+        stat_summary(aes (x=as.numeric(Year), 
+                          y=Arg_TA, fill=Sub_region, shape=Zone),
+                    size=2,
+                fun.data = "mean_cl_boot", geom = "point",
+                position=position_dodge(width=0.3))+
+        scale_y_continuous(#limits = c(-2.5,2.5),
+                       name=(expression("TA contribution"~Omega[Ar])),
+                       breaks = seq(-2, 2, 1),  
+                       expand = c(0.01, 0.01))+
+        geom_smooth(method = "lm" )
+        
+#Tre_arg_plot_TA
+
+Tre_arg_plot_DIC<- ggplot(Contributions[Contributions$Year>2014, ], aes(x=Year, y=Arg_DIC, fill=Sub_region)) +
+        MyTheme +  
+        facet_grid(~Zone)+
+        geom_hline(yintercept = 0, colour="gray")+
+        #geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
+        Zone_shapes4+
+        stat_summary(aes (x=as.numeric(Year),
+                          y=Arg_DIC, colour=Sub_region),
+                    fun.data = "mean_cl_boot", geom = "errorbar", 
+                    width = 0.2,
+                    position=position_dodge(width=0.3))+
+        stat_summary(aes (x=as.numeric(Year), 
+                          y=Arg_DIC, fill=Sub_region, shape=Zone),
+                    size=2,
+                    fun.data = "mean_cl_boot", geom = "point",
+                    position=position_dodge(width=0.3))+
+        scale_y_continuous(#limits = c(-2.5,2.5),
+                       name=(expression("DIC contribution"~Omega[Ar])),
+                       breaks = seq(-2, 2, 1),  
+                       expand = c(0.01, 0.01))
+#Tre_arg_plot_DIC
+
+Tre_arg_plot_Sal<- ggplot(Contributions, aes(x=Year, y=Arg_Sal, fill=Sub_region)) +
+        MyTheme +  
+        facet_grid(~Zone)+
+        Zone_shapes4+
+        geom_hline(yintercept = 0, colour="gray")+
+       # geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
+        stat_summary(aes (x=as.numeric(Year),
+                          y=Arg_Sal, colour=Sub_region),
+                    fun.data = "mean_cl_boot", geom = "errorbar", 
+                    width = 0.2,
+                    position=position_dodge(width=0.3))+
+        stat_summary(aes (x=as.numeric(Year), 
+                          y=Arg_Sal, fill=Sub_region, shape=Zone),
+                    size=2,
+                fun.data = "mean_cl_boot", geom = "point",
+                position=position_dodge(width=0.3))+
+         scale_y_continuous(#limits = c(-2.5,2.5),
+                       name=(expression("Salinity contribution"~Omega[Ar])),
+                       breaks = seq(-0.1, 0.1, 0.1),  
+                       expand = c(0.01, 0.01))
+#Tre_arg_plot_Sal
+
+Tre_arg_plot_Temp<- ggplot(Contributions, aes(x=Year, y=Arg_Tem, fill=Sub_region)) +
+        MyTheme +  
+        facet_grid(~Zone)+
+        geom_hline(yintercept = 0, colour="gray")+
+        #geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
+        Zone_shapes4+
+        stat_summary(aes (x=as.numeric(Year),
+                          y=Arg_Tem, colour=Sub_region),
+                    fun.data = "mean_cl_boot", geom = "errorbar", 
+                    width = 0.2,
+                    position=position_dodge(width=0.3))+
+        stat_summary(aes (x=as.numeric(Year), 
+                          y=Arg_Tem, fill=Sub_region, shape=Zone),
+                    size=2,
+                    fun.data = "mean_cl_boot", geom = "point",
+                    position=position_dodge(width=0.3))+
+        scale_y_continuous(#limits = c(-2.5,2.5),
+                       name=(expression("Salinity contribution"~Omega[Ar])),
+                       breaks = seq(-0.1, 0.1, 0.1),  
+                       expand = c(0.01, 0.01))
+#Tre_arg_plot_Temp
+
+Tre_cont_plot<-ggarrange(Cont_arg_plot_TA+ theme(
+                                          axis.text.x=element_blank(),
+                                          axis.title.x = element_blank()),
+                  Cont_arg_plot_DIC+ theme(legend.position = "none",
+                                           axis.text.x=element_blank(),
+                                           axis.title.x = element_blank(),
+                                           strip.text.x = element_blank()),
+                                
+                  Cont_arg_plot_Sal + theme(legend.position = "none",
+                                           axis.text.x=element_blank(),
+                                           axis.title.x = element_blank(),
+                                           strip.text.x = element_blank()),
+                                
+                  Cont_arg_plot_Temp + theme(legend.position = "none",
+                                        strip.text.x = element_blank()),
+                                           
+          ncol = 1, nrow = 4, heights = c(1.3, 0.9, 0.9, 1.2))
+Tre_cont_plot
+
+```
+
+
+
+#8. PCA
 
 ```{r}
 #str(Month_Stats)
