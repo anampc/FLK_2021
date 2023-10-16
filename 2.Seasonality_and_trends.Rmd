@@ -153,7 +153,7 @@ Zone_shapes3<- scale_shape_manual(values=c(21,23,24))
       
   FLK.data$Season<-factor(FLK.data$Season, levels = c(
                         "Winter", "Spring", "Summer", "Fall"))
-#summary(FLK.data)
+#summary(FLK.data$Extreme)
 
 # ## Seasonality (NOPE)
 # -   Winter: Dec 20-March 19
@@ -437,20 +437,19 @@ kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), fon
 
 ## Flag extreme events
 
-Three extreme weather events can be observed in the data and associated with abnormal conditions:
+Two extreme weather events can be observed in the data and associated with abnormal conditions:
 
 * A cold snap that caused coral mortality in March 2010 (Manzello et al. 2012)
 * Extreme precipitation that reduced salinity in October 2011 (Manzello et al. 2012)
-* Abnormally low pH in July, Sept and Nov 2019 (not know reason)
 
 These data can be seen / flagged / filtered using the "Extreme" column. 
 
 ```{r}
 # Label and filter extreme events
   FLK.data$Extreme<-as.factor(FLK.data$Extreme)
-    summary(FLK.data$Extreme)
+  FLK.data$Extreme[FLK.data$Extreme=="Low_pH"]<-"Normal"
+  summary(FLK.data$Extreme)
   FLK.data_filtered<-FLK.data[FLK.data$Extreme=="Normal",]
-  
 ```
 
 # 3 Temperature and salinity impacts on carbonate chemistry
@@ -1288,7 +1287,7 @@ TA_DIA_sal_model_in<-lm(TA_DIC~BestSalinity * Sub_region,
     pairs(m.lst)
 ```
 
-## Figure 4: Summary by zone and season
+## Figure 5: Summary by zone and season
 
 ### Temperature
 
@@ -1420,7 +1419,7 @@ Zone_Plot
 
 ```
 
-##Figure 4: Summary salinity plots with region
+# - Figure 5: Summary salinity plots with region
 
 * TA and DIC vs Salinity (region and zone) - no season
 
@@ -1446,7 +1445,7 @@ Salinity_Region
 #ggsave(file="FLK_results/Salinity_region.svg", plot=Salinity_Region, dpi = 300, width=5, height=4)
 ```
 
-**Figure 4.** TA, DIC and TA/DIC linear regressions as a function of salinity. The vertical panels separate the locations by shelf zone. The black line and text on the top of each panel show the linear regression for all regions combined inside each zone. Additional colors differentiate the linear regressions by biogeographical region. Tables S7 and S8 shows the regression values per region and zone.
+**Figure 5.** TA, DIC and TA/DIC linear regressions as a function of salinity. The vertical panels separate the locations by shelf zone. The black line and text on the top of each panel show the linear regression for all regions combined inside each zone. Additional colors differentiate the linear regressions by biogeographical region. Tables S7 and S8 shows the regression values per region and zone.
 
 ## 3.3 Salinity normalization
 
@@ -2606,7 +2605,7 @@ Year_ploth<- ggplot(Month_Stats) +
         #guides(fill=guide_legend(override.aes=list(shape=21)))+
         #theme(axis.title.x = element_blank() )
 
-Month_Season_plotTA_DIC<- ggplot(FLK.data_filtered[
+Month_Season_plot_in<- ggplot(FLK.data_filtered[
           FLK.data_filtered$Zone!="Oceanic",]) +
         MyTheme +  
         facet_grid(~Zone)+
@@ -3569,7 +3568,7 @@ Om_Y2b
 
 **Figure 3F:** Aragonite saturation state (omega) by the region and shelf position. Left: monthly mean values, Right: Yearly mean values + SD, maximum monthly mean and minimum monthly mean.
 
-# Fig.3: Seasonal monthly plot
+# - Fig.3: Seasonal monthly plot
 
 ```{r, echo=FALSE, fig.height=10, fig.width=8}
 # Seasonality_my2<-ggarrange(
@@ -3776,6 +3775,10 @@ Yearly_Stats
   WS.reef$dpH_MY<-WS.reef$pH_calculated-WS.reef$OpH_O
    # Delta Omega
   WS.reef$dOme_MY<-WS.reef$Aragonite_Sat_W-WS.reef$OAra_O
+    # Delta Temp
+  WS.reef$dTem_MY<-WS.reef$Temperature_C -WS.reef$OTem_my
+   # Delta Sal
+  WS.reef$dSal_MY<-WS.reef$BestSalinity-WS.reef$OSal_my
   
  # head(WS.reef)
  #summary(WS.reef$Season, digits=2)
@@ -4312,75 +4315,9 @@ dYear_Add
 #write.csv(dYear_Add, "FLK_results/Table_1_year_byMM.csv", row.names = F)
 ```
 
-## - Yearly summ (indiviual years)
-
-```{r}
-dYear_Add2<- ddply (WS.reef, .(Zone, Sub_region, MY, Region, Year),
-                            summarise,
-                  dTA_mean = mean (dTA_MY, na.rm = T),
-                  dTA_sd = sd (dTA_MY, na.rm = T),
-                  #dTA_se = std.error (dTA_MY, na.rm = T),
-                  
-                  dnTA_mean = mean (dnTA_MY, na.rm = T),
-                  dnTA_sd = sd (dnTA_MY, na.rm = T),
-                 
-                  dDIC_mean = mean (dDIC_MY, na.rm = T),
-                  dDIC_sd = mean (dDIC_MY, na.rm = T),
-                  #dDIC_se = std.error (dDIC_MY, na.rm = T),
-                  
-                  dnDIC_mean = mean (dnDIC_MY, na.rm = T),
-                  dnDIC_sd = sd (dnDIC_MY, na.rm = T),
-                  
-                  dpCO2_mean = mean (dpCO2_MY , na.rm = T),
-                  dpCO2_sd = sd (dpCO2_MY , na.rm = T),
-                  #dpCO2_se = std.error (dpCO2_MY, na.rm = T),
-                  
-                  dpH_mean = mean (dpH_MY, na.rm = T),
-                  dpH_sd = mean (dpH_MY, na.rm = T),
-                  #dPH_se = std.error (dpH_MY, na.rm = T),
-                  
-                  dAra_mean = mean (dOme_MY , na.rm = T),
-                  dAra_sd = mean (dOme_MY , na.rm = T),
-                  #dAra_se = std.error (dOme_MY, na.rm = T),
-                  n())
-
-dYear_Add2<-dYear_Add2 %>% 
- mutate_if(is.numeric, round, digits=3)
-dYear_Add2
-
-dYear_Add2<-dYear_Add2[dYear_Add2$Year>2014, ]
-dYear_Add2<-dYear_Add2[dYear_Add2$Year<2022, ]
-
-dYear_Add3<- ddply (dYear_Add2, .(Zone, Sub_region, Year),
-           summarise,
-  su_dTA_Y = sum (dTA_mean, na.rm = T),
-  #m_TA_Y = mean (dTA_mean, na.rm = T),
-  #sd_TA_Y = sd (dTA_mean, na.rm = T),
-  
-  su_dDIC_Y = sum (dDIC_mean, na.rm = T),
-  #m_dDIC_Y = mean (dDIC_mean, na.rm = T),
-  #sd_dDIC_Y = sd (dDIC_mean, na.rm = T),
-  
-
-  su_dpCO2_Y = sum (dpCO2_mean, na.rm = T),
-  #m_pCO2_Y = mean (dpCO2_mean, na.rm = T),
-  #sd_pCO2_Y = sd (dpCO2_mean, na.rm = T),
-  
-  su_dpH_Y = sum (dpH_mean, na.rm = T),
-  #m_pH_Y = mean (dpH_mean, na.rm = T),
-  #sd_pH_Y = sd (dpH_mean, na.rm = T),
-  
-  su_dAra_Y = sum (dAra_mean, na.rm = T),
-  #m_Ara_Y = mean (dAra_mean, na.rm = T),
-  #sd_Ara_Y = sd (dAra_mean, na.rm = T),
-  n())
-
-dYear_Add3<-dYear_Add3 %>% 
- mutate_if(is.numeric, round, digits=2)
-dYear_Add3
-```
-
 ## 5.5 Seasonal models
+
+Dive dataset by Zone to run models
 
 ```{r}
 season.data<-WS.reef[WS.reef$Extreme=="Normal", ]
@@ -4394,6 +4331,8 @@ ofshore.season.data<-season.data[season.data$Zone=="Offshore", ]
 ```
 
 ### LMER - TA month
+
+All data 
 
 ```{r, fig.height=4, fig.width=6}
   hist(FLK.data_filtered$TA_umol_kg)
@@ -4542,7 +4481,7 @@ ofshore.season.data<-season.data[season.data$Zone=="Offshore", ]
   
 ```
 
-# Figure 4A: Model
+## Figure 5A: Model
 
 ```{r, fig.height=4.0, fig.width=8}
 dTA_ses_2.emmc<-as.data.frame(dTA_ses.emmc)
@@ -4702,7 +4641,7 @@ DeltaYearTA
 
 ```
 
-# Figure 4B: Model
+## Figure 5B: Model
 
 ```{r,  fig.height=4.0, fig.width=8 }
 dDIC_ses_2.emmc<-as.data.frame(dDIC_ses.emmc)
@@ -4937,7 +4876,7 @@ dOm_year.emmc<-emmeans(dOmega_season, ~Sub_region*Zone)
       pack_rows(., "Inshore", 9, 12)
 ```
 
-# Figure 4D: Model
+## Figure 5D: Model
 
 ```{r,  fig.height=4.0, fig.width=8}
 dAra_ses_2.emmc<-as.data.frame(dAra_ses.emmc2)
@@ -5116,7 +5055,7 @@ dpH_ses.emmc2<-emmeans(dpH_season, ~Season*Sub_region, by="Zone")
       pack_rows(., "Inshore", 9, 12)
 ```
 
-# Figure 4C: Model
+## Figure 5C: Model
 
 ```{r,  fig.height=4.0, fig.width=8}
 dpH_ses_2.emmc<-as.data.frame(dpH_ses.emmc2)
@@ -5298,7 +5237,7 @@ DeltaYearpH
     #modelsummary(Omega_models, estimate = "p.value")
 ```
 
-# Figure 4: Models
+# - Figure 5: Seasonal delta models
 
 ```{r}
 Figure_4<-ggarrange(DeltaYearTA+ theme(axis.title.x=element_blank(),
@@ -5322,168 +5261,205 @@ Figure_4
 
 ```
 
-# 6 Contribution to Ar
+# 6 Seasonal sensitivity analysis
+
+## 6.1 Calculate partial derivatives 
 
 ```{r}
-Contributions<-FLK.data[, c( "DIC_umol_kg", "TA_umol_kg", "pH_calculated", "pCO2_uatm", "Aragonite_Sat_W", "Temperature_C", "BestSalinity", "nTA", "nDIC", "n36TA", "n36DIC", "SiteID", "Year", "Date", "Month2","Month", "Months", "MY", "MoY", "Season", "Precipitation", "Sub_region", "Zone", "Extreme")]
-Contributions$Depth<-0
-Contributions<-Contributions [complete.cases(Contributions),]
-summary(Contributions)
-```
-
-```{r}
-
 library(seacarb)
 
-# Run seacarb changing TA
-seacarb.TA = carb(
-  flag = 15,
-  var1 = mean_Op$OTA / 10 ^ 6, #mean oceanic TA
-  var2 = Contributions$DIC_umol_kg / 10 ^ 6,
-  S = Contributions$BestSalinity,
-  T = Contributions$Temperature_C,
-  P = Contributions$Depth, 
-  #Patm=1.0, Pt=0, Sit=0, pHscale="T", kf="pf", k1k2="l", ks="d", b="u74"
-  )
-
-# Run seacarb changing DIC
-seacarb.DIC = carb(
-  flag = 15,
-  var1 = Contributions$TA_umol_kg / 10 ^ 6, #mean oceanic TA
-  var2 = mean_Op$ODIC / 10 ^ 6,
-  S = Contributions$BestSalinity,
-  T = Contributions$Temperature_C,
-  P = Contributions$Depth, 
-  #Patm=1.0, Pt=0, Sit=0, pHscale="T", kf="pf", k1k2="l", ks="d", b="u74"
-  )
-
-# Run seacarb changing Salinity
-seacarb.Sal = carb(
-  flag = 15,
-  var1 = Contributions$TA_umol_kg / 10 ^ 6, #mean oceanic TA
-  var2 = Contributions$DIC_umol_kg / 10 ^ 6,
-  S = mean_Op$OSal,
-  T = Contributions$Temperature_C,
-  P = Contributions$Depth, 
-  #Patm=1.0, Pt=0, Sit=0, pHscale="T", kf="pf", k1k2="l", ks="d", b="u74"
-  )
-
-# Run seacarb changing Temp
-seacarb.Temp = carb(
-  flag = 15,
-  var1 = Contributions$TA_umol_kg / 10 ^ 6, #mean oceanic TA
-  var2 = Contributions$DIC_umol_kg / 10 ^ 6,
-  S = Contributions$BestSalinity,
-  T = mean_Op$OTem ,
-  P = Contributions$Depth, 
-  #Patm=1.0, Pt=0, Sit=0, pHscale="T", kf="pf", k1k2="l", ks="d", b="u74"
-  )
+# Derivatives with respect of TA
+    der.TA = derivnum(
+      varid = "var1",
+      flag = 15,
+      var1 = mean_Op$OTA / 10 ^ 6, #mean oceanic TA
+      var2 = mean_Op$ODIC / 10 ^ 6,
+      S = mean_Op$OSal, 
+      T = mean_Op$OTem,
+      P = 0,
+      Patm=1.0, Pt=0, Sit=0, pHscale="T"
+      )
+    Arg_der.TA<-as.numeric(der.TA$OmegaAragonite/ 10 ^ 6)
+    pH_der.TA<-as.numeric(der.TA$pH/ 10 ^ 6)
+    pCO2_der.TA<-as.numeric(der.TA$pCO2/ 10 ^ 6)
+    
+    # Derivatives with respect of DIA
+    der.DIC = derivnum(
+      varid = "var2",
+      flag = 15,
+      var1 = mean_Op$OTA / 10 ^ 6, #mean oceanic TA
+      var2 = mean_Op$ODIC / 10 ^ 6,
+      S = mean_Op$OSal, 
+      T = mean_Op$OTem,
+      P = 0,
+      Patm=1.0, Pt=0, Sit=0, pHscale="T"
+      )
+    
+    Arg_der.DIC<-as.numeric(der.DIC$OmegaAragonite/ 10 ^ 6)
+    pH_der.DIC<-as.numeric(der.DIC$pH/ 10 ^ 6)
+    pCO2_der.DIC<-as.numeric(der.DIC$pCO2/ 10 ^ 6)
+    
+  # Derivatives with respect of Temperature (C)
+      der.T = derivnum(
+        varid = "temp",
+        flag = 15,
+        var1 = mean_Op$OTA / 10 ^ 6, #mean oceanic TA
+        var2 = mean_Op$ODIC / 10 ^ 6,
+        S = mean_Op$OSal, 
+        T = mean_Op$OTem,
+        P = 0,
+        Patm=1.0, Pt=0, Sit=0, pHscale="T"
+        )
+      
+    Arg_der.Temp<-as.numeric(der.T$OmegaAragonite)
+    pH_der.Temp<-as.numeric(der.T$pH)
+    pCO2_der.Temp<-as.numeric(der.T$pCO2)
+      
+  # Derivatives with respect of Salinity (psu)
+      der.S = derivnum(
+        varid = "sal",
+        flag = 15,
+        var1 = mean_Op$OTA / 10 ^ 6, #mean oceanic TA
+        var2 = mean_Op$ODIC / 10 ^ 6,
+        S = mean_Op$OSal, 
+        T = mean_Op$OTem,
+        P = 0,
+        Patm=1.0, Pt=0, Sit=0, pHscale="T"
+        )
+      
+    Arg_der.Sal<-as.numeric(der.S$OmegaAragonite)
+    pH_der.Sal<-as.numeric(der.S$pH)
+    pCO2_der.Sal<-as.numeric(der.S$pCO2)
 ```
 
+## 6.2 Calculate omega and pH variability related to TA, DIC, T and S
 
 ```{r}
-Ar.contributions<-cbind(Contributions$Aragonite_Sat_W, seacarb.TA$OmegaAragonite, seacarb.DIC$OmegaAragonite,
-                        seacarb.Sal$OmegaAragonite, seacarb.Temp$OmegaAragonite)
-colnames(Ar.contributions) <- c("Aragonite", "meanTA", "meanDIC", "meanSal", "meanTemp")
-Ar.contributions<-as.data.frame(Ar.contributions)
+FLK.data_filtered$Arg_TA<-(FLK.data_filtered$TA_umol_kg-mean_Op$OTA)*Arg_der.TA
+FLK.data_filtered$Arg_DIC<-(FLK.data_filtered$DIC_umol_kg-mean_Op$ODIC)*Arg_der.DIC
+FLK.data_filtered$Arg_Temp<-(FLK.data_filtered$Temperature_C - mean_Op$OTem)*Arg_der.Temp
+FLK.data_filtered$Arg_Sal<-(FLK.data_filtered$BestSalinity - mean_Op$OSal)*Arg_der.Sal
 
-Ar.contributions$Arg_TA<-(Ar.contributions$Aragonite-Ar.contributions$meanTA)
-Ar.contributions$Arg_DIC<-(Ar.contributions$Aragonite-Ar.contributions$meanDIC)
-Ar.contributions$Arg_Sal<-(Ar.contributions$Aragonite-Ar.contributions$meanSal)
-Ar.contributions$Arg_Tem<-(Ar.contributions$Aragonite-Ar.contributions$meanTemp)
-
-# Ar.contributions$all<-Ar.contributions$Arg_TA + Ar.contributions$Arg_DIC + Ar.contributions$Arg_Sal + Ar.contributions$Arg_Tem
-
-Contributions<-cbind(Contributions, Ar.contributions)
+FLK.data_filtered$pH_TA<-(FLK.data_filtered$TA_umol_kg- mean_Op$OTA)*pH_der.TA
+FLK.data_filtered$pH_DIC<-(FLK.data_filtered$DIC_umol_kg- mean_Op$ODIC)*pH_der.DIC
+FLK.data_filtered$pH_Temp<-(FLK.data_filtered$Temperature_C-mean_Op$OTem)*pH_der.Temp
+FLK.data_filtered$pH_Sal<-(FLK.data_filtered$BestSalinity -mean_Op$OSal)*pH_der.Sal
 ```
 
+## 6.3 Plot sensitivity
+
+**Sensitivity plots by region and zone** 
+
+* Individual contributions by region, zone and variable to Omega
+
 ```{r}
-Cont_arg_plot_TA<- ggplot(Contributions, aes(x=Months, y=Arg_TA, fill=Sub_region)) +
+Cont_arg_plot_TA<- ggplot(FLK.data_filtered,
+                          aes(x=Months, y=Arg_TA, fill=Sub_region)) +
         MyTheme +  
         facet_grid(~Zone)+
-        #geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
         Zone_shapes4+
         geom_hline(yintercept = 0, colour="gray")+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=Arg_TA, colour=Sub_region),
+                span=0.8, alpha=0.2, se=F)+
         stat_summary(aes (x=as.numeric(Months),
                           y=Arg_TA, colour=Sub_region),
                     fun.data = "mean_cl_boot", geom = "errorbar", 
-                    width = 0.2,
+                    width = 0.2, alpha=0.6,
                     position=position_dodge(width=0.3))+
         stat_summary(aes (x=as.numeric(Months), 
                           y=Arg_TA, fill=Sub_region, shape=Zone),
-                    size=2,
+                    size=1,
                 fun.data = "mean_cl_boot", geom = "point",
                 position=position_dodge(width=0.3))+
         scale_y_continuous(#limits = c(-2.5,2.5),
-                       name=(expression("TA contribution"~Omega[Ar])),
+                       name=(expression(
+                        (delta~Omega[Ar]~delta~TA^-1)~Delta~TA)),
                        breaks = seq(-2, 2, 1),  
+                       expand = c(0.01, 0.01))+
+        scale_x_continuous(breaks = seq(1, 12, 1),  
                        expand = c(0.01, 0.01))
         
 #Cont_arg_plot_TA
 
-Cont_arg_plot_DIC<- ggplot(Contributions, aes(x=Months, y=Arg_DIC, fill=Sub_region)) +
+Cont_arg_plot_DIC<- ggplot(FLK.data_filtered, aes(x=Months, y=Arg_DIC, fill=Sub_region)) +
         MyTheme +  
         facet_grid(~Zone)+
         geom_hline(yintercept = 0, colour="gray")+
-        #geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=Arg_DIC, colour=Sub_region),
+                      span=0.8, alpha=0.2, se=F)+
         Zone_shapes4+
         stat_summary(aes (x=as.numeric(Months),
                           y=Arg_DIC, colour=Sub_region),
                     fun.data = "mean_cl_boot", geom = "errorbar", 
-                    width = 0.2,
+                    width = 0.2, alpha=0.6,
                     position=position_dodge(width=0.3))+
         stat_summary(aes (x=as.numeric(Months), 
                           y=Arg_DIC, fill=Sub_region, shape=Zone),
-                    size=2,
+                    size=1,
                     fun.data = "mean_cl_boot", geom = "point",
                     position=position_dodge(width=0.3))+
         scale_y_continuous(#limits = c(-2.5,2.5),
-                       name=(expression("DIC contribution"~Omega[Ar])),
+                       name=(expression(
+                        (delta~Omega[Ar]~delta~DIC^-1)~Delta~DIC)),
                        breaks = seq(-2, 2, 1),  
+                       expand = c(0.01, 0.01))+
+        scale_x_continuous(breaks = seq(1, 12, 1),  
                        expand = c(0.01, 0.01))
 #Cont_arg_plot_DIC
 
-Cont_arg_plot_Sal<- ggplot(Contributions, aes(x=Months, y=Arg_Sal, fill=Sub_region)) +
+Cont_arg_plot_Sal<- ggplot(FLK.data_filtered, aes(x=Months, y=Arg_Sal, fill=Sub_region)) +
         MyTheme +  
         facet_grid(~Zone)+
         Zone_shapes4+
         geom_hline(yintercept = 0, colour="gray")+
-       # geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=Arg_Sal, colour=Sub_region),
+                span=0.8, alpha=0.2, se=F)+
         stat_summary(aes (x=as.numeric(Months),
                           y=Arg_Sal, colour=Sub_region),
                     fun.data = "mean_cl_boot", geom = "errorbar", 
-                    width = 0.2,
+                    width = 0.2, alpha=0.5,
                     position=position_dodge(width=0.3))+
         stat_summary(aes (x=as.numeric(Months), 
                           y=Arg_Sal, fill=Sub_region, shape=Zone),
-                    size=2,
+                    size=1,
                 fun.data = "mean_cl_boot", geom = "point",
                 position=position_dodge(width=0.3))+
          scale_y_continuous(#limits = c(-2.5,2.5),
-                       name=(expression("Salinity contribution"~Omega[Ar])),
+                       name=(expression(
+                        (delta~Omega[Ar]~delta~S^-1)~Delta~S)),
                        breaks = seq(-0.1, 0.1, 0.1),  
+                       expand = c(0.01, 0.01))+
+        scale_x_continuous(breaks = seq(1, 12, 1),  
                        expand = c(0.01, 0.01))
 #Cont_arg_plot_Sal
 
-Cont_arg_plot_Temp<- ggplot(Contributions, aes(x=Months, y=Arg_Tem, fill=Sub_region)) +
+Cont_arg_plot_Temp<- ggplot(FLK.data_filtered, aes(x=Months, y=Arg_Tem, fill=Sub_region)) +
         MyTheme +  
         facet_grid(~Zone)+
         geom_hline(yintercept = 0, colour="gray")+
-        #geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=Arg_Temp, colour=Sub_region),
+                span=0.8, alpha=0.2, se=F)+
         Zone_shapes4+
         stat_summary(aes (x=as.numeric(Months),
-                          y=Arg_Tem, colour=Sub_region),
+                          y=Arg_Temp, colour=Sub_region),
                     fun.data = "mean_cl_boot", geom = "errorbar", 
                     width = 0.2,
                     position=position_dodge(width=0.3))+
         stat_summary(aes (x=as.numeric(Months), 
-                          y=Arg_Tem, fill=Sub_region, shape=Zone),
+                          y=Arg_Temp, fill=Sub_region, shape=Zone),
                     size=2,
                     fun.data = "mean_cl_boot", geom = "point",
                     position=position_dodge(width=0.3))+
         scale_y_continuous(#limits = c(-2.5,2.5),
-                       name=(expression("Salinity contribution"~Omega[Ar])),
+                       name=(expression(
+                        (delta~Omega[Ar]~delta~T^-1)~Delta~T)),
                        breaks = seq(-0.1, 0.1, 0.1),  
+                       expand = c(0.01, 0.01))+
+        scale_x_continuous(breaks = seq(1, 12, 1),  
                        expand = c(0.01, 0.01))
 #Cont_arg_plot_Temp
 
@@ -5503,13 +5479,170 @@ Omega_cont_plot<-ggarrange(Cont_arg_plot_TA+ theme(
                   Cont_arg_plot_Temp + theme(legend.position = "none",
                                         strip.text.x = element_blank()),
                                            
-          ncol = 1, nrow = 4, heights = c(1.3, 0.9, 0.9, 1.2))
+          ncol = 1, nrow = 4, heights = c(1.4, 0.9, 0.9, 1.1))
 Omega_cont_plot
 
 ```
 
+* TA+DIC and S+T contributions by region, zone and variable to omeaga
 
-# 7 LMER long trend MODELS
+```{r}
+Cont_arg_plot_TA_DIC<- ggplot(FLK.data_filtered, aes(x=Months,
+                                                     y=(Arg_TA+Arg_DIC),
+                                                        fill=Sub_region)) +
+        MyTheme +  
+        facet_grid(~Zone)+
+        Zone_shapes4+
+        geom_hline(yintercept = 0, colour="gray")+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=(Arg_TA+Arg_DIC), colour=Sub_region),
+                span=0.8, alpha=0.2, se=F)+
+        stat_summary(aes (x=as.numeric(Months),
+                          y=(Arg_TA+Arg_DIC), colour=Sub_region),
+                    fun.data = "mean_cl_boot", geom = "errorbar", 
+                    width = 0.2, alpha=0.5,
+                    position=position_dodge(width=0.3))+
+        stat_summary(aes (x=as.numeric(Months), 
+                          y=(Arg_TA+Arg_DIC), fill=Sub_region, shape=Zone),
+                    size=1,
+                fun.data = "mean_cl_boot", geom = "point",
+                position=position_dodge(width=0.3))+
+         scale_y_continuous(#limits = c(-2.5,2.5),
+                       name=(expression(
+                        (delta~Omega[Ar]~delta~AT^-1)~Delta~TA~+~
+                        (delta~Omega[Ar]~delta~DIC^-1)~Delta~DIC)),
+                       breaks = seq(-2, 2, 0.5),  
+                       expand = c(0.01, 0.01))+
+        scale_x_continuous(breaks = seq(1, 12, 1),  
+                       expand = c(0.01, 0.01))
+Cont_arg_plot_TA_DIC
+
+Cont_arg_plot_T_S<- ggplot(FLK.data_filtered, aes(x=Months,
+                                                     y=(Arg_Temp+Arg_Sal),
+                                                        fill=Sub_region)) +
+        MyTheme +  
+        facet_grid(~Zone)+
+        Zone_shapes4+
+        geom_hline(yintercept = 0, colour="gray")+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=(Arg_Temp+Arg_Sal), colour=Sub_region),
+                span=0.8, alpha=0.2, se=F)+
+        stat_summary(aes (x=as.numeric(Months),
+                          y=(Arg_Temp+Arg_Sal), colour=Sub_region),
+                    fun.data = "mean_cl_boot", geom = "errorbar", 
+                    width = 0.2, alpha=0.5,
+                    position=position_dodge(width=0.3))+
+        stat_summary(aes (x=as.numeric(Months), 
+                          y=(Arg_Temp+Arg_Sal), fill=Sub_region, shape=Zone),
+                    size=1,
+                fun.data = "mean_cl_boot", geom = "point",
+                position=position_dodge(width=0.3))+
+         scale_y_continuous(#limits = c(-2.5,2.5),
+                         name=(expression(
+                        (delta~Omega[Ar]~delta~S^-1)~Delta~S~+~
+                        (delta~Omega[Ar]~delta~T^-1)~Delta~T)),
+                       breaks = seq(-0.2, 0.2, 0.1),  
+                       expand = c(0.01, 0.01))+
+        scale_x_continuous(breaks = seq(1, 12, 1),  
+                       expand = c(0.01, 0.01))
+Cont_arg_plot_T_S
+```
+
+**Sensitivity plots by zone (region not considered)**
+
+* Individual contributions by zone and variable to Omega and pH 
+
+```{r}
+colors <- c("TA" = "#800080", 
+            "DIC" = "#228B22", 
+            "Temperature" = "#DC143C",
+            "Salinity" = "#4169E1",
+            "Combined"= "black",
+            "Calculated"="gray")
+
+Cont_arg_plot<- ggplot(FLK.data_filtered) +
+        MyTheme +  
+        facet_grid(~Zone)+
+        geom_hline(yintercept = 0, colour="gray")+
+        scale_color_manual(values = colors)+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=Arg_TA, color="TA"),
+                span=0.8, alpha=0.2, se=F)+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=Arg_DIC, color="DIC"),
+                span=0.8, alpha=0.2, se=F)+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=Arg_Temp, color="Temperature"),
+                span=0.8, alpha=0.2, se=F)+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=Arg_Sal, color="Salinity"),
+                span=0.8, alpha=0.2, se=F)+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=(Arg_TA+Arg_DIC+Arg_Temp+Arg_Sal), color="Combined"),
+                span=0.8, alpha=0.2, se=F)+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=(FLK.data_filtered$Aragonite_Sat_W-mean_Op$OAra),
+                      color="Calculated"),
+                span=0.8, alpha=0.2, se=F, linetype=2)+
+        scale_y_continuous(#limits = c(-2.5,2.5),
+                       name=(expression(
+                         Contribution~to~Delta[oc]~Omega[Ar])),
+                       breaks = seq(-2, 2, 0.5),  
+                       expand = c(0.05, 0.05))+
+        scale_x_continuous(breaks = seq(1, 12, 1),  
+                       expand = c(0.01, 0.01))+
+  theme(legend.position = "top")
+#Cont_arg_plot
+
+Cont_pH_plot<- ggplot(FLK.data_filtered) +
+        MyTheme +  
+        facet_grid(~Zone)+
+        scale_color_manual(values = colors)+
+        geom_hline(yintercept = 0, colour="gray")+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=pH_TA, color="TA"),
+                span=0.8, alpha=0.2, se=F)+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=pH_DIC, color="DIC"),
+                span=0.8, alpha=0.2, se=F)+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=pH_Temp, color="Temperature"),
+                span=0.8, alpha=0.2, se=F)+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=pH_Sal,  color="Salinity"),
+                span=0.8, alpha=0.2, se=F)+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=(pH_TA+pH_DIC+pH_Temp+pH_Sal), color="Combined"),
+                span=0.8, alpha=0.2, se=F)+
+        geom_smooth(aes (x=as.numeric(Months),
+                      y=(FLK.data_filtered$pH_calculated-mean_Op$OpH), 
+                      color="Calculated"),
+                span=0.8, alpha=0.2, se=F, linetype=2)+
+        scale_y_continuous(#limits = c(-2.5,2.5),
+                       name=(expression(
+                         Contribution~to~Delta[oc]~pH)),
+                       breaks = seq(-2, 2, 0.1),  
+                       expand = c(0.01, 0.01))+
+        scale_x_continuous(breaks = seq(1, 12, 1),  
+                       expand = c(0.01, 0.01))+
+  theme(legend.position = "bottom")
+#Cont_pH_plot
+```
+
+### Figure 7: Seasonal panels
+
+```{r}
+Sensitivity<-ggarrange(Cont_arg_plot+ theme(axis.title.x=element_blank(),
+                                 axis.text.x=element_blank(),
+                                 legend.position = "top"),
+                                
+                  Cont_pH_plot + theme(legend.position = "none",
+                                       strip.text.x = element_blank()),
+          ncol = 1, nrow = 2, heights  =c(1.25, 1))
+Sensitivity
+```
+
+# 7 LMER interannual trend MODELS
 
 -   The F statistic in a regression model is used to test whether there is a linear model of the data - overall, or equivalently that your model is no better than a model with just the intercept.
 
@@ -5517,19 +5650,37 @@ Omega_cont_plot
 
 - The t-statistic is telling you about each coefficient individually. You can have a model with a low overall linear fit, but one individual coefficient may be relatively contributing a lot to explanation the variation in the DV that is explained on the assumption that there is a linear model.
 
-
 ## Data and plots prep
 
 ```{r}
 Trends.data<-FLK.data[FLK.data$Year>2014, ]
-#summary(Trends.data)
+
+# Add contributions
+Trends.data$Arg_TA<- (Trends.data$TA_umol_kg-mean_Op$OTA)*Arg_der.TA
+Trends.data$Arg_DIC<-(Trends.data$DIC_umol_kg-mean_Op$ODIC)*Arg_der.DIC
+Trends.data$Arg_Tem<-(Trends.data$Temperature_C - mean_Op$OTem)*Arg_der.Temp
+Trends.data$Arg_Sal<-(Trends.data$BestSalinity - mean_Op$OSal)*Arg_der.Sal
+
+Trends.data$pH_TA<-(Trends.data$TA_umol_kg-mean_Op$OTA)*pH_der.TA
+Trends.data$pH_DIC<-(Trends.data$DIC_umol_kg-mean_Op$ODIC)*pH_der.DIC
+Trends.data$pH_Tem<-(Trends.data$Temperature_C - mean_Op$OTem)*pH_der.Temp
+Trends.data$pH_Sal<-(Trends.data$BestSalinity - mean_Op$OSal)*pH_der.Sal
+#head(Trends.data)
 
 Reef.Trends.data<-WS.reef[WS.reef$Year>2014, ]
-#Reef.Trends.data<-Reef.Trends.data[Reef.Trends.data$Extreme=="Normal", ]
-#summary(Reef.Trends.data$Extreme)
+# Add contributions
+Reef.Trends.data$Arg_TA<-(Reef.Trends.data$TA_umol_kg-mean_Op$OTA)*Arg_der.TA
+Reef.Trends.data$Arg_DIC<-(Reef.Trends.data$DIC_umol_kg-mean_Op$ODIC)*Arg_der.DIC
+Reef.Trends.data$Arg_Tem<-(Reef.Trends.data$Temperature_C - mean_Op$OTem)*Arg_der.Temp
+Reef.Trends.data$Arg_Sal<-(Reef.Trends.data$BestSalinity - mean_Op$OSal)*Arg_der.Sal
+
+Trends.data$pH_TA<-(Trends.data$TA_umol_kg-mean_Op$OTA)*pH_der.TA
+Trends.data$pH_DIC<-(Trends.data$DIC_umol_kg-mean_Op$ODIC)*pH_der.DIC
+Trends.data$pH_Tem<-(Trends.data$Temperature_C - mean_Op$OTem)*pH_der.Temp
+Trends.data$pH_Sal<-(Trends.data$BestSalinity - mean_Op$OSal)*pH_der.Sal
+#summary(Reef.Trends.data)
 
 Trends.ocean<-Trends.data[Trends.data$Zone=="Oceanic", ]
-
 Trends.offshore<-Reef.Trends.data[Reef.Trends.data$Zone=="Offshore", ]
 Trends.midchanel<-Reef.Trends.data[Reef.Trends.data$Zone=="Mid channel", ]
 Trends.inshore<-Reef.Trends.data[Reef.Trends.data$Zone=="Inshore", ]
@@ -5563,6 +5714,8 @@ factor_order <- c('Year'    = 'Year',
 ```
 
 # Temperature-All
+
+There are not significant changes in mean Temperature over the years
 
 ```{r, echo=FALSE, fig.height=4, fig.width=8}
 hist(Trends.data$Temperature_C)
@@ -5815,6 +5968,8 @@ In summary, temperature slope is only significant for offshore zone.
 
 # TA-All
 
+Plot raw data
+
 ```{r, echo=FALSE, fig.height=4, fig.width=8}
 hist(Trends.data$TA_umol_kg)
 shapiro.test(Trends.data$TA_umol_kg) # Normality rejected
@@ -5845,6 +6000,8 @@ Trends_c2
 
 ```
 
+All data model
+
 ```{r, echo=TRUE, fig.height=4, fig.width=6}
 ## Model with all data
 TA_all_o<-lmer(TA_umol_kg~Year * Zone * Sub_region + (1|Month)+           
@@ -5869,7 +6026,8 @@ TA_all_1<-lmer(TA_umol_kg ~ Year + Zone + Sub_region +
   m.lst <- lstrends(TA_all_1, "Sub_region", var="Year")
   m.lst
   pairs(m.lst)
-
+  
+  lstrends(TA_all_1, "Zone", var="Year")
 ```
 
 ## Inshore
@@ -5951,7 +6109,7 @@ TA_mc_0<-lmer(TA_umol_kg~Year * Sub_region + (1|Month) +
   step(TA_mc_0)
 
 
-TA_mc<-lmer(TA_umol_kg ~ Sub_region + (1 | Month),
+TA_mc<-lmer(TA_umol_kg ~ Sub_region + (1 | Month) + (1|SiteID),
                data = Trends.midchanel)
   summary(TA_mc) 
   anova(TA_mc)
@@ -6262,6 +6420,8 @@ Trends_TA
 
 # DIC-All
 
+Plot raw data
+
 ```{r, echo=FALSE, fig.height=4, fig.width=8}
 hist(Trends.data$DIC_umol_kg)
 shapiro.test(Trends.data$DIC_umol_kg) # Normality rejected
@@ -6292,6 +6452,8 @@ Trends_c2
 
 ```
 
+All data model
+
 ```{r, echo=TRUE, fig.height=4, fig.width=6}
 ## Model with all data
 DIC_all_o<-lmer(DIC_umol_kg~Year * Zone * Sub_region + (1|Month)+           
@@ -6316,7 +6478,8 @@ DIC_all_1<-lmer(DIC_umol_kg ~ Year + Zone + Sub_region +
   m.lst <- lstrends(DIC_all_1, "Sub_region", var="Year")
   m.lst
   pairs(m.lst)
-
+  
+  lstrends(DIC_all_1, "Zone", var="Year")
 ```
 
 ## Inshore
@@ -6744,6 +6907,8 @@ Trends_DIC
 
 # Omega-All
 
+Plot raw data
+
 ```{r, echo=FALSE, fig.height=4, fig.width=8}
 hist(Trends.data$Aragonite_Sat_W)
 shapiro.test(Trends.data$Aragonite_Sat_W) # Normality rejected
@@ -6773,6 +6938,8 @@ Trends_c2<-Omeaga_all+facet_grid(~Zone) +
 Trends_c2
 
 ```
+
+All data model
 
 ```{r, echo=TRUE}
 ## Model with all data
@@ -6847,7 +7014,7 @@ anova(Omega_all_1, Omega_all_3)
     Arg_in.emmc
     
   #write.csv(Arg_in.emmc, "FLK_results/Model_9_LTpH_POST.csv")
-    round(Arg_in.emmc$emmean, digits = 2)
+  round(Arg_in.emmc$emmean, digits = 2)
   #anova(Omega_in)
   #ranova(Omega_in)
 
@@ -7214,9 +7381,6 @@ modelsummary(Omega_models, stars = TRUE,
             #statistic = c('std.error', 'p.value', 'conf.int'),
              title = 'Final Omega model outputs (dropped factors)',
              coef_map=factor_order)
-
-#modelsummary(Omega_models, output = "FLK_results/Figures/Fig_2/Trend_Omega.docx")
-#modelsummary(Omega_models, estimate = "p.value")
 ```
 
 ```{r omega model plot, fig.height=4, fig.width=8}
@@ -7241,6 +7405,8 @@ Trends_Omega
 ```
 
 # pCO2-All
+
+Plot raw data
 
 ```{r, echo=FALSE, fig.height=4, fig.width=8}
 hist(Trends.data$pCO2_uatm)
@@ -8174,6 +8340,8 @@ Trends_pH
 
 # dTA-All
 
+Plot raw data
+
 ```{r}
 Long_plot2<- ggplot(Reef.Trends.data) +
         MyTheme +  
@@ -8395,6 +8563,8 @@ modelsummary(dTA_models, stars = TRUE,
 
 # dDIC-All
 
+Plot raw data
+
 ```{r, echo=FALSE, fig.height=4, fig.width=8}
 hist(Reef.Trends.data$dDIC_MY)
 shapiro.test(Reef.Trends.data$dDIC_MY)# Normality rejected
@@ -8593,7 +8763,7 @@ modelsummary(dDIC_models, stars = TRUE,
 
 ```
 
-# Figure 2: Trends
+# - Figure 2: Trends
 
 ```{r}
 Trends_Modeled<-ggarrange(
@@ -8613,1875 +8783,256 @@ Trends_Modeled
 
 # 8. Contribution to trends
 
-```{r}
-Contributions2<-Contributions[Contributions$Year>2014, ]
-Contributions2.in<-Contributions2[Contributions2$Zone=="Inshore", ]
-Contributions2.mc<-Contributions2[Contributions2$Zone=="Mid channel", ]
-Contributions2.of<-Contributions2[Contributions2$Zone=="Offshore", ]
-Contributions2.oc<-Contributions2[Contributions2$Zone=="Oceanic", ]
-```
+## Omega
 
-## TA - Inshore
-
-```{r, fig.height=4, fig.width=6}
-# Inshore TA
-  hist(Contributions2.in$Arg_TA)
-  shapiro.test(Contributions2.in$Arg_TA) # Normality rejected
-
-  Arg_TA_in_0<-lmer(Arg_TA~Year * Sub_region + (1|Month)+
-                                    #(1|Zone)+             
-                                    (1|SiteID), 
-                    data=Contributions2.in)
-  #summary(Arg_TA_in_0)
-  step(Arg_TA_in_0)
-    
-  Arg_TA_in<-lmer(Arg_TA ~ Sub_region +
-               (1 | Month), data=Contributions2.in)
-    anova(Arg_TA_in)
-    ranova(Arg_TA_in)
-    summary(Arg_TA_in)
-    
-  plot(Arg_TA_in)
-    par(mfrow=c(1,2))
-    qqnorm(resid(Arg_TA_in))
-    acf(resid(Arg_TA_in), main="acf(resid(Arg TA Inshore))")
-    par(mfrow=c(1,1))
-  
-  Arg_TA_in.emmc<-emmeans(Arg_TA_in, ~Sub_region)
-    Arg_TA_in.emmc<-multcomp::cld(Arg_TA_in.emmc)
-    #Arg_TA_in.emmc<-as.data.frame(Arg_TA_in.emmc[complete.cases(Arg_TA_in.emmc),])
-    Arg_TA_in.emmc<-Arg_TA_in.emmc[order(Arg_TA_in.emmc$Sub_region),]
-    Arg_TA_in.emmc
-  #write.csv(Arg_TA_in.emmc, "FLK_results/Arg_TA_in.emmc_POST.csv")
-```
+All zones in one model per variable
 
 ```{r}
-# Create a new data frame for independent variables  
-  In_Newdata<-expand.grid(Sub_region=unique(Contributions2$Sub_region),
-                          Year=seq((min(Contributions2$Year)),
-                                   (max(Contributions2$Year))))
+# Omega  
+Arg_D<-lmer(Trends.data$Aragonite_Sat_W ~Year * Zone +
+                     (1|Month) + (1|SiteID) + (1|Sub_region), 
+                    data=Trends.data)
+  #anova(Arg_D)
+  #ranova(Arg_D)
+  summary(Arg_D)
+  lstrends(Arg_D, "Zone", var="Year")
+  pairs(lstrends(Arg_D, "Zone", var="Year"))
 
-  In_ArTA_Pred <- predict(Arg_TA_in, newdata=In_Newdata, 
-                         re.form=NA, level=0, asList = FALSE)
+# TA contribution model  
+Arg_TA_in_f<-lmer(Arg_TA~Year*Zone + (1|Month) + (1|SiteID), 
+                    data=Trends.data)
+  summary(Arg_TA_in_f)
+  lstrends(Arg_TA_in_f, "Zone", var="Year")
+  pairs(lstrends(Arg_TA_in_f, "Zone", var="Year"))
   
-  In_ArTA_Pred <-cbind(In_Newdata, In_ArTA_Pred)
-  In_ArTA_Pred$Date<-as.Date(as.character(In_ArTA_Pred$Year), format = "%Y")
+# DIC contribution model
+ Arg_DIC_in_f<-lmer(Arg_DIC~Year*Zone + (1|Month) + (1|SiteID), 
+                    data=Trends.data)
+  summary(Arg_DIC_in_f)
+  lstrends(Arg_DIC_in_f, "Zone", var="Year")
+  pairs(lstrends(Arg_DIC_in_f, "Zone", var="Year"))
+
+# T contribution model    
+Arg_Tem_in_f<-lmer(Arg_Tem ~Year*Zone + (1|Month) + (1|SiteID), 
+                    data=Trends.data)
+  summary(Arg_Tem_in_f)
+  lstrends(Arg_Tem_in_f, "Zone", var="Year")
+  pairs(lstrends(Arg_Tem_in_f, "Zone", var="Year"))
   
-  
-# Plot raw data point and fitted model 
-  Arg_In_TA_Modeled<-Long_plot2+ 
-     scale_y_continuous(limits = c(-3,3),
-                       name=(expression(~Omega[Ar]~"_TA")),
-                       #breaks = seq(0, 10, 0.5),  
-                       expand = c(0.02, 0.02)) +
-    
-      geom_point(data=Contributions2, 
-                               aes(y=Arg_TA, x=Date, 
-                                  fill = Sub_region), 
-                                  #colour = Sub_region), 
-                               alpha=0.5, size=0.5, shape=21)+
-      geom_line(data=In_ArTA_Pred, aes(y = In_ArTA_Pred,
-                                      x=Date, colour = Sub_region), 
-                                linetype=2, size=1) 
-  Arg_In_TA_Modeled
+# S contribution model  
+Arg_Sal_in_f<-lmer(Arg_Sal ~Year*Zone + (1|Month) + (1|SiteID), 
+                    data=Trends.data)
+  summary(Arg_Sal_in_f)
+  lstrends(Arg_Sal_in_f, "Zone", var="Year")
+  pairs(lstrends(Arg_Sal_in_f, "Zone", var="Year"))
 ```
 
-## TA - Mid channel
-
-```{r, fig.height=4, fig.width=6}
-hist(Contributions2.mc$Arg_TA)
-shapiro.test(Contributions2.mc$Arg_TA)# Normality rejected
-
-Arg_TA_mc_0<-lmer(Arg_TA~Year * Sub_region + (1|Month) + 
-                                  #(1|Zone)+             
-                                  (1|SiteID), data=Contributions2.mc)
-  anova(Arg_TA_mc_0)
-  ranova(Arg_TA_mc_0)
-  step(Arg_TA_mc_0)
-
-
-Ar_TA_mc<-lmer(Arg_TA ~ Sub_region + (1 | Month),
-               data = Contributions2.mc)
-  summary(Ar_TA_mc) 
-  anova(Ar_TA_mc)
-  
-  plot(Ar_TA_mc)
-    par(mfrow=c(1,2))
-    qqnorm(resid(Ar_TA_mc))
-    acf(resid(Ar_TA_mc), main="acf(resid(Arg TA mid Channel))")  
-    par(mfrow=c(1,1))
-    
-  Ar_TA_md.emmc<-emmeans(Ar_TA_mc, ~Sub_region)
-    Ar_TA_md.emmc<-multcomp::cld(Ar_TA_md.emmc)
-    #TA_md.emmc<-as.data.frame(TA_md.emmc[complete.cases(TA_md.emmc),])
-    Ar_TA_md.emmc<-Ar_TA_md.emmc[order(Ar_TA_md.emmc$Sub_region),]
-    Ar_TA_md.emmc
-  #write.csv(TA_md.emmc, "FLK_results/Model_TA_mc_POST.csv")
-```
+Omega decomposition summary 
 
 ```{r}
-# Create a new data frame for independent variables  
-  Mc_Newdata<-expand.grid(Sub_region=unique(Contributions2.mc$Sub_region),
-                          Year=seq((min(Contributions2.mc$Year)),
-                                   (max(Contributions2.mc$Year))))
+Arg_Con_models<-list("dArg" = Arg_D,
+                     "TA_Ar" = Arg_TA_in_f, 
+                     "DIC_Ar" = Arg_DIC_in_f, 
+                     "T_Ar" = Arg_Tem_in_f, 
+                     "S_Ar" = Arg_Sal_in_f
+                     )
 
-  Mc_TA_Pred <- predict(Ar_TA_mc, newdata=Mc_Newdata, 
-                         re.form=NA, level=0, asList = FALSE)
-  
-  Mc_TA_Pred <-cbind(Mc_Newdata, Mc_TA_Pred)
-  Mc_TA_Pred$Date<-as.Date(as.character(Mc_TA_Pred$Year), format = "%Y")
-  
-# Plot raw data point and fitted model 
-  Arg_Mc_TA_Modeled<-Long_plot2+ 
-     scale_y_continuous(limits = c(-3,3),
-                       name=(~Omega[Ar]~"_TA"),
-                       #breaks = seq(0, 10, 0.5),  
-                       expand = c(0.02, 0.02)) +
-      geom_point(data=Contributions2.mc, 
-                               aes(y=Arg_TA, x=Date, 
-                                  fill = Sub_region), 
-                                  #colour = Sub_region), 
-                               alpha=0.5, size=0.5, shape=23)+
-      geom_line(data=Mc_TA_Pred, aes(y = Mc_TA_Pred,
-                                      x=Date, colour = Sub_region),
-                linetype=2, size=1) 
-  Arg_Mc_TA_Modeled
-```
-
-## TA - Offshore
-
-```{r, fig.height=4, fig.width=6}
-hist(Contributions2.of$Arg_TA)
-shapiro.test(Contributions2.of$Arg_TA)# Normality rejected
-
-Arg_TA_of_0<-lmer(Arg_TA~Year * Sub_region + 
-               (1|Month) + (1|SiteID),
-               data=Contributions2.of)
-  #summary(Arg_TA_of_0)    
-  anova(Arg_TA_of_0)
-  ranova(Arg_TA_of_0)
-  step(Arg_TA_of_0)
-
-Ar_TA_of<-lmer(Arg_TA ~ Year + Sub_region + (1 | Month), 
-               data =Contributions2.of)
-  summary(Ar_TA_of)
-  anova(Ar_TA_of) 
-
-plot(Ar_TA_of)
-  par(mfrow=c(1,2))
-  qqnorm(resid(Ar_TA_of))
-  acf(resid(Ar_TA_of), main="acf(resid(Arg - TA offshore))")  
-  par(mfrow=c(1,1))
-    
-  Ar_TA_of.emmc<-emmeans(Ar_TA_of, ~Sub_region)
-    Ar_TA_of.emmc<-multcomp::cld(Ar_TA_of.emmc)
-    #TA_of.emmc<-as.data.frame(TA_of.emmc[complete.cases(TA_of.emmc),])
-    Ar_TA_of.emmc<-Ar_TA_of.emmc[order(Ar_TA_of.emmc$Sub_region),]
-    Ar_TA_of.emmc
-#write.csv(TA_of.emmc, "FLK_results/Model_TA_of.emmc_POST.csv")
-```
-
-```{r}
-# Create a new data frame for independent variables  
-  Of_Newdata<-expand.grid(Zone=unique(Contributions2.of$Zone),
-                          Sub_region=unique(Contributions2.of$Sub_region),
-                          Year=seq((min(Contributions2.of$Year)),
-                                   (max(Contributions2.of$Year))))
-  Of_TA_Pred <- predict(Ar_TA_of, newdata=Of_Newdata, re.form=NA, level=0, 
-                        asList = FALSE)
-  
-  Of_TA_Pred <-cbind(Of_Newdata, Of_TA_Pred)
-  Of_TA_Pred$Date<-as.Date(as.character(Of_TA_Pred$Year), format = "%Y")
-  
-  # Model summary for labels
-  slope<-round(summary(Ar_TA_of)$coefficients["Year", "Estimate"], digits = 3)
-  #xs <- as.Date(as.character("2018-11-20"))
-  ys <- max(Contributions2$Arg_TA-0.5, na.rm =T)
-  plot_label <- sprintf("\"\" ~ TA == %0.3f", slope)
-  plot_label2 <- expression("Year^-1")
-  
-# Plot raw data point and fitted model 
-  Arg_Of_TA_Modeled<-Long_plot2+
-     scale_y_continuous(limits = c(-3,3),
-                       name=(expression(~Omega[Ar]~"_TA")),
-                       #breaks = seq(0, 10, 0.5),  
-                       expand = c(0.02, 0.02)) +
-    
-      geom_point(data=Contributions2.of, 
-                               aes(y=Arg_TA, x=Date, 
-                                  fill = Sub_region), 
-                                  #colour = Sub_region), 
-                               alpha=0.5, size=0.5, shape=24)+
-      geom_line(data=Of_TA_Pred, aes(y = Of_TA_Pred,
-                                      x=Date, colour = Sub_region), linetype=1, size=1)+
-      annotate(geom="text", x = as.Date(xs), y = ys, parse=TRUE,
-               #label = expression("~TA[Ar] == -0.015** ~Year ^-1"),
-               label =paste0(as.character(plot_label, plot_label2, sep = " ")),
-               size=4)
-  Arg_Of_TA_Modeled
-```
-
-## TA - Oceanic
-
-```{r, fig.height=4, fig.width=6}
-hist(Contributions2.oc$Arg_TA)
-shapiro.test(Contributions2.oc$Arg_TA)# Normality NOT rejected
-
-Arg_TA_oc_0<-lmer(Arg_TA ~ Year * Sub_region + 
-               (1 | Month)+ (1|SiteID),
-               data=Contributions2.oc)
-  #summary(Arg_TA_oc_0)
-  anova(Arg_TA_oc_0)
-  ranova(Arg_TA_oc_0)
-  step(Arg_TA_oc_0)
-
-Ar_TA_oc<-lmer(Arg_TA ~ Year + (1 | Month), data = Contributions2.oc)
-  summary(Ar_TA_oc)
-  anova(Ar_TA_oc)
-  
-plot(Ar_TA_oc)
-  par(mfrow=c(1,2))
-  qqnorm(resid(Ar_TA_oc))
-  acf(resid(Ar_TA_oc), main="acf(resid(TA ocean))")
-  par(mfrow=c(1,1))
-  
-Arg_TA_oc.emmc<-emmeans(Ar_TA_oc, ~Year)
-    #Arg_TA_oc.emmc<-multcomp::cld(Arg_TA_oc.emmc)
-    #Arg_TA_oc.emmc<-as.data.frame(Arg_TA_oc.emmc[complete.cases(Arg_TA_oc.emmc),])
-    #Arg_TA_oc.emmc<-Arg_TA_oc.emmc[order(Arg_TA_oc.emmc$Sub_region),]
-    #Arg_TA_oc.emmc
-
-```
-
-```{r}
-# Create a new data frame for independent variables  
-  Oc_Newdata<-expand.grid(one=unique(Contributions2.oc$Zone),
-                                Sub_region=unique(Contributions2.oc$Sub_region),
-                          Year=seq((min(Contributions2.oc$Year)),
-                                   (max(Contributions2.oc$Year))))
-  Oc_TA_Pred <- predict(Ar_TA_oc, newdata=Oc_Newdata, re.form=NA, level=0, asList = FALSE)
-  
-  Oc_TA_Pred <-cbind(Oc_Newdata, Oc_TA_Pred)
-  Oc_TA_Pred$Date<-as.Date(as.character(Oc_TA_Pred$Year), format = "%Y")
-  
-# Model summary for labels
-  slope<-round(summary(Ar_TA_oc)$coefficients["Year", "Estimate"], digits = 3)
-  #xs <- as.Date(as.character("2018-11-20"))
-  ys <- max(Contributions2$Arg_TA-0.5, na.rm =T)
-  plot_label <- sprintf("\"\" ~ TA == %0.3f", slope)
-  plot_label2 <- expression("Year^-1")
-  
-# Plot raw data point and fitted model 
-  Arg_Oc_TA_Modeled<-Long_plot2+ #facet_grid(~Zone)+
-     scale_y_continuous(limits = c(-3,3),
-                       name=(~Omega[Ar]~"_TA"),
-                       #breaks = seq(0, 10, 0.5),  
-                       expand = c(0.02, 0.02)) +
-    
-      geom_point(data=Contributions2.oc, 
-                               aes(y=Arg_TA, x=Date, 
-                                   fill = Sub_region), 
-                                   #colour = Sub_region), 
-                               alpha=0.5, size=0.5, shape=25)+
-      geom_line(data=Oc_TA_Pred, aes(y = Oc_TA_Pred,
-                                      x=Date), linetype=1, size=1, colour = "black") +
-    
-      annotate(geom="text", x = as.Date(xs), y = ys, parse=TRUE,
-               #label = expression("~TA[Ar] == -0.015** ~Year ^-1"), 
-               label =paste0(as.character(plot_label, plot_label2, sep = " ")),
-               size=4)
-  Arg_Oc_TA_Modeled
-```
-
-## Models summary
-
-Complete models
-
-```{r , all fixed factors summary - Ar-TA}
-# ANOVAs
-    # Convert ANOVA results into dataframes allows for easier name manipulation
-    av.Arg_TA_in_0 <- data.frame (anova(Arg_TA_in_0))
-    av.Arg_TA_mc_0 <- data.frame (anova(Arg_TA_mc_0) )
-    av.Arg_TA_of_0 <- data.frame (anova(Arg_TA_of_0))
-    av.Arg_TA_oc_0 <- data.frame (anova(Arg_TA_oc_0))
-    
-    # Putting all into one dataframe/table
-    anova_Arg_TA_0 <- data.frame(cbind
-                    (c("Year", "Sub_region", "Year:Sub_region", 
-                       "Year", "Sub_region", "Year:Sub_region",
-                       "Year", "Sub_region", "Year:Sub_region",
-                       "Year", "Sub_region", "Year:Sub_region"), 
-                                      rbind(av.Arg_TA_in_0, av.Arg_TA_mc_0,
-                                            av.Arg_TA_of_0, av.Arg_TA_oc_0))) 
-    colnames(anova_Arg_TA_0) <- c("", "Sum Sq", "Mean Sq", "N Df" , "D Df",
-                                     "F value", "Pr(>F)")
-    row.names(anova_Arg_TA_0) <- NULL
-    
-    # create HTML table using kableExtra
-    anova_Arg_TA_0 %>% kable("html", digits=2, 
-        caption="Initial Arg-TA models fixed factors: Year * Region") %>% 
-      kable_styling(bootstrap_options = "striped", full_width = F) %>% 
-      pack_rows(., "Arg_TA inshore", 1, 3) %>% # groups rows with label
-      pack_rows(., "Arg_TA mid-channel", 4, 6)  %>% # groups rows with label
-      pack_rows(., "Arg_TA offshore", 7, 9) %>% # groups rows with label
-      pack_rows(., "Arg_TA ocean", 10, 12)  
-```
-
-```{r}
-
-# R-ANOVAs    
-    rav.Ar_TA_in_0 <- data.frame (ranova(Arg_TA_in_0))
-    rav.Ar_TA_mc_0 <- data.frame (ranova(Arg_TA_mc_0) )
-    rav.Ar_TA_of_0 <- data.frame (ranova(Arg_TA_of_0))
-    rav.Ar_TA_oc_0 <- data.frame (ranova(Arg_TA_oc_0))
-    
-    # Putting all into one dataframe/table
-    ranova_Ar_TA_0 <- data.frame(cbind
-                    (c("<none>", "(1 | Month)", "(1 | SiteID)",
-                       "<none>", "(1 | Month)", "(1 | SiteID)",
-                       "<none>", "(1 | Month)", "(1 | SiteID)",
-                       "<none>", "(1 | Month)", "(1 | SiteID)"), 
-                      rbind(rav.TA_in_0, rav.TA_mc_0,
-                            rav.TA_of_0, rav.TA_oc_0))) 
-    colnames(ranova_Ar_TA_0) <- c("", "npar", "logLik", "AIC" , "LRT",
-                                     "DF", "Pr(>Chi Sq)")
-    row.names(ranova_Ar_TA_0) <- NULL
-    
-    # create HTML table using kableExtra
-    ranova_Ar_TA_0 %>% kable("html", digits=2,
-         caption="Initial Ar-TA models random factors: Month+Station") %>% 
-      kable_styling(bootstrap_options = "striped", full_width = F) %>% 
-      pack_rows(., "Ar_TA inshore", 1, 3) %>% # groups rows with label
-      pack_rows(., "Ar_TA mid-channel", 4, 6)  %>% # groups rows with label
-      pack_rows(., "Ar_TA offshore", 7, 9) %>% # groups rows with label
-      pack_rows(., "Ar_TA ocean", 10, 12)  
-
-```
-
-```{r}
-Arg_TA_models_0<-list("Inshore" = Arg_TA_in_0, 
-                   "Mid channel" = Arg_TA_mc_0, 
-                   "Offshore" = Arg_TA_of_0, 
-                   "Ocean" = Arg_TA_oc_0)
-modelsummary(TA_models_0, stars = TRUE, 
+modelsummary(Arg_Con_models, stars = TRUE, 
              #statistic = c('std.error', 'p.value', 'conf.int'),
-             title = 'Initial Arg_TA model outputs (all factors)',
+             title = 'Contribution to Aragonite Saturation State',
              coef_map=factor_order)
 #modelsummary(TA_models, estimate = "p.value")
 ```
 
-Models with non-significant factors removed
-
-```{r TA-Arg dropped models}
-Ar_TA_models<-list("Inshore" = Arg_TA_in, 
-                   "Mid channel" = Ar_TA_mc, 
-                   "Offshore" = Ar_TA_of, 
-                   "Ocean" = Ar_TA_oc)
-modelsummary(Ar_TA_models, stars = TRUE, 
-            #statistic = c('std.error', 'p.value', 'conf.int'),
-             title = 'Final Arg_TA model outputs (dropped factors)',
-             coef_map=factor_order)
-
-#modelsummary(Ar_TA_models, output = "FLK_results/Figures/Fig_2/Trend_TA.docx")
-#modelsummary(Ar_TA_models, estimate = "p.value")
-
-```
-
-```{r TA-Arg model plot, fig.height=4, fig.width=8}
-Trends_Arg_TA<-ggarrange(Arg_In_TA_Modeled+ theme(
-                                          axis.text.x=element_blank(),
-                                          legend.position = "none"),
-                  Arg_Mc_TA_Modeled+ theme(legend.position = "none",
-                                           axis.text.x=element_blank(),
-                                           axis.title.y=element_blank()),
-                                
-                  Arg_Of_TA_Modeled + theme(legend.position = "none",
-                                           axis.text.x=element_blank(),
-                                           axis.title.y=element_blank()),
-                                
-                  Arg_Oc_TA_Modeled + theme(legend.position = "none",
-                                           axis.text.x=element_blank(),
-                                           axis.title.y=element_blank()),
-                                           
-          #labels = c("D"),
-          ncol = 4, nrow = 1, widths =c(1.1, 1, 1, 1))
-Trends_Arg_TA
-```
-
-
-## DIC-Inshore
-
-```{r, fig.height=4, fig.width=6}
-# Inshore DIC
-  hist(Contributions2.in$Arg_DIC)
-  shapiro.test(Contributions2.in$Arg_DIC) # Normality rejected
-
-  Arg_DIC_in_0<-lmer(Arg_DIC~Year * Sub_region + (1|Month)+
-                                    #(1|Zone)+             
-                                    (1|SiteID), 
-                    data=Contributions2.in)
-  #summary(Arg_DIC_in_0)
-  step(Arg_DIC_in_0)
-    
-  Arg_DIC_in<-lmer(Arg_DIC ~ Year + Sub_region +
-               (1 | Month) + (1 | SiteID), data=Contributions2.in)
-    anova(Arg_DIC_in)
-    ranova(Arg_DIC_in)
-    summary(Arg_DIC_in)
-    
-  plot(Arg_DIC_in)
-    par(mfrow=c(1,2))
-    qqnorm(resid(Arg_DIC_in))
-    acf(resid(Arg_DIC_in), main="acf(resid(Arg DIC Inshore))")
-    par(mfrow=c(1,1))
-  
-  Arg_DIC_in.emmc<-emmeans(Arg_DIC_in, ~Sub_region)
-    Arg_DIC_in.emmc<-multcomp::cld(Arg_DIC_in.emmc)
-    #Arg_DIC_in.emmc<-as.data.frame(Arg_DIC_in.emmc[complete.cases(Arg_DIC_in.emmc),])
-    Arg_DIC_in.emmc<-Arg_DIC_in.emmc[order(Arg_DIC_in.emmc$Sub_region),]
-    Arg_DIC_in.emmc
-  #write.csv(Arg_DIC_in.emmc, "FLK_results/Arg_DIC_in.emmc_POST.csv")
-```
+Predict and plot
 
 ```{r}
-# Create a new data frame for independent variables  
-  In_Newdata<-expand.grid(Sub_region=unique(Contributions2$Sub_region),
-                          Year=seq((min(Contributions2$Year)-0.0),
-                                   (max(Contributions2$Year)+0.0)))
+Newdata_f<-expand.grid(Zone=unique(Trends.data$Zone),
+                       Year=seq((min(Trends.data$Year)),
+                                  (max(Trends.data$Year))))
 
-  In_ArDIC_Pred <- predict(Arg_DIC_in, newdata=In_Newdata, 
+Ar_Cal <- predict(Arg_D, newdata=Newdata_f, 
+                         re.form=NA, level=0, asList = FALSE)
+Ar_Cal<-Ar_Cal-mean_Op$OAra
+
+ArTA_Pred_f <- predict(Arg_TA_in_f, newdata=Newdata_f, 
+                         re.form=NA, level=0, asList = FALSE)
+ArDIC_Pred_f <- predict(Arg_DIC_in_f, newdata=Newdata_f, 
+                         re.form=NA, level=0, asList = FALSE)
+ArTemp_Pred_f <- predict(Arg_Tem_in_f, newdata=Newdata_f, 
+                         re.form=NA, level=0, asList = FALSE)
+ArSal_Pred_f <- predict(Arg_Sal_in_f, newdata=Newdata_f, 
                          re.form=NA, level=0, asList = FALSE)
   
-  In_ArDIC_Pred <-cbind(In_Newdata, In_ArDIC_Pred)
-  In_ArDIC_Pred$Date<-as.Date(as.character(In_ArDIC_Pred$Year), 
-                              format = "%Y")
-  
-  # Model summary for labels
-  slope<-round(summary(Arg_DIC_in)$coefficients["Year", "Estimate"], digits = 3)
-  #xs <- as.Date(as.character("2018-11-20"))
-  ys <- max(Contributions2$Arg_DIC-0.5, na.rm =T)
-  plot_label <- sprintf("\"\" ~ Arg_DIC == %0.3f", slope)
-  plot_label2 <- expression("Year^-1")
-  
-  
+Ar_Pred_f <-cbind(Newdata_f, ArTA_Pred_f, ArDIC_Pred_f, 
+                     ArTemp_Pred_f, ArSal_Pred_f, Ar_Cal)
+Ar_Pred_f$Date<-as.Date(as.character(Ar_Pred_f$Year), format = "%Y")
+Ar_Pred_f$Combined<-Ar_Pred_f$ArTA_Pred_f + Ar_Pred_f$ArDIC_Pred_f +
+                    Ar_Pred_f$ArTemp_Pred_f + Ar_Pred_f$ArSal_Pred_f
+
 # Plot raw data point and fitted model 
-  Arg_In_DIC_Modeled<-Long_plot2+ 
-     scale_y_continuous(limits = c(-3,3),
-                       name=(expression(~Omega[Ar]~"_DIC")),
+  Arg_Modeled<-Long_plot2 + facet_grid(~Zone)+
+     geom_hline(yintercept = 0, colour="gray")+
+     scale_color_manual(values = colors)+
+     Zone_shapes4+
+     scale_y_continuous(limits = c(-1,1),
+                       name=(expression(
+                         Contribution~to~Delta[oc]~Omega[Ar])),
                        #breaks = seq(0, 10, 0.5),  
                        expand = c(0.02, 0.02)) +
-    
-      geom_point(data=Contributions2, 
-                               aes(y=Arg_DIC, x=Date, 
-                                  fill = Sub_region), 
-                                  #colour = Sub_region), 
-                               alpha=0.5, size=0.5, shape=21)+
-      geom_line(data=In_ArDIC_Pred, aes(y = In_ArDIC_Pred,
-                                      x=Date, colour = Sub_region), 
-                                linetype=1, size=1)+
-      annotate(geom="text", x = as.Date(xs), y = ys, parse=TRUE,
-               #label = expression("~DIC[Ar] == -0.015** ~Year ^-1"),
-               label =paste0(as.character(plot_label, plot_label2, sep = " ")),
-               size=4)
-  Arg_In_DIC_Modeled
-```
-
-## DIC - Mid channel
-
-```{r, fig.height=4, fig.width=6}
-hist(Contributions2.mc$Arg_DIC)
-shapiro.test(Contributions2.mc$Arg_DIC)# Normality rejected
-
-Arg_DIC_mc_0<-lmer(Arg_DIC~Year * Sub_region + (1|Month) + 
-                                  #(1|Zone)+             
-                                  (1|SiteID), data=Contributions2.mc)
-  anova(Arg_DIC_mc_0)
-  ranova(Arg_DIC_mc_0)
-  step(Arg_DIC_mc_0)
-
-
-Ar_DIC_mc<-lmer(Arg_DIC ~ Year + Sub_region + (1 | Month),
-               data = Contributions2.mc)
-  summary(Ar_DIC_mc) 
-  anova(Ar_DIC_mc)
-  
-  plot(Ar_DIC_mc)
-    par(mfrow=c(1,2))
-    qqnorm(resid(Ar_DIC_mc))
-    acf(resid(Ar_DIC_mc), main="acf(resid(Arg DIC mid Channel))")  
-    par(mfrow=c(1,1))
-    
-  Ar_DIC_md.emmc<-emmeans(Ar_DIC_mc, ~Sub_region)
-    Ar_DIC_md.emmc<-multcomp::cld(Ar_DIC_md.emmc)
-    #DIC_md.emmc<-as.data.frame(DIC_md.emmc[complete.cases(DIC_md.emmc),])
-    Ar_DIC_md.emmc<-Ar_DIC_md.emmc[order(Ar_DIC_md.emmc$Sub_region),]
-    Ar_DIC_md.emmc
-  #write.csv(DIC_md.emmc, "FLK_results/Model_DIC_mc_POST.csv")
-```
-
-```{r}
-# Create a new data frame for independent variables  
-  Mc_Newdata<-expand.grid(Sub_region=unique(Contributions2.mc$Sub_region),
-                          Year=seq((min(Contributions2.mc$Year)-0),
-                                   (max(Contributions2.mc$Year)+0)))
-
-  Mc_DIC_Pred <- predict(Ar_DIC_mc, newdata=Mc_Newdata, 
-                         re.form=NA, level=0, asList = FALSE)
-  
-  Mc_DIC_Pred <-cbind(Mc_Newdata, Mc_DIC_Pred)
-  Mc_DIC_Pred$Date<-as.Date(as.character(Mc_DIC_Pred$Year), format = "%Y")
-  
-  # Model summary for labels
-  slope<-round(summary(Ar_DIC_mc)$coefficients["Year", "Estimate"], digits = 3)
-  #xs <- as.Date(as.character("2018-11-20"))
-  #ys <- max(Trends.inshore$Arg_DIC, na.rm =T)
-  #ys <- max(Contributions2$Arg_DIC-0.5, na.rm =T)
-  plot_label <- sprintf("\"\" ~ Arg_DIC == %0.3f", slope)
-  plot_label2 <- expression("Year^-1")
-  
-# Plot raw data point and fitted model 
-  Arg_Mc_DIC_Modeled<-Long_plot2+ 
-     scale_y_continuous(limits = c(-3, 3),
-                       name=(~Omega[Ar]~"_DIC"),
-                       #breaks = seq(0, 10, 0.5),  
-                       expand = c(0.02, 0.02)) +
-      geom_point(data=Contributions2.mc, 
-                               aes(y=Arg_DIC, x=Date, 
-                                  fill = Sub_region), 
-                                  #colour = Sub_region), 
-                               alpha=0.5, size=0.5, shape=23)+
-      geom_line(data=Mc_DIC_Pred, aes(y = Mc_DIC_Pred,
-                                      x=Date, colour = Sub_region),
-                linetype=1, size=1) +
-      annotate(geom="text", x = as.Date(xs), y = ys, parse=TRUE,
-               #label = expression("~DIC[Ar] == -0.015** ~Year ^-1"),
-               label =paste0(as.character(plot_label, plot_label2, sep = " ")),
-               size=4)
-  Arg_Mc_DIC_Modeled
-```
-
-## DIC - Offshore
-
-```{r, fig.height=4, fig.width=6}
-hist(Contributions2.of$Arg_DIC)
-shapiro.test(Contributions2.of$Arg_DIC)# Normality rejected
-
-Arg_DIC_of_0<-lmer(Arg_DIC~Year * Sub_region + 
-               (1|Month) + (1|SiteID),
-               data=Contributions2.of)
-  #summary(Arg_DIC_of_0)    
-  anova(Arg_DIC_of_0)
-  ranova(Arg_DIC_of_0)
-  step(Arg_DIC_of_0)
-
-Ar_DIC_of<-lmer(Arg_DIC ~ Year + Sub_region + (1 | Month), 
-               data =Contributions2.of)
-  summary(Ar_DIC_of)
-  anova(Ar_DIC_of) 
-
-plot(Ar_DIC_of)
-  par(mfrow=c(1,2))
-  qqnorm(resid(Ar_DIC_of))
-  acf(resid(Ar_DIC_of), main="acf(resid(Arg - DIC offshore))")  
-  par(mfrow=c(1,1))
-    
-  Ar_DIC_of.emmc<-emmeans(Ar_DIC_of, ~Sub_region)
-    Ar_DIC_of.emmc<-multcomp::cld(Ar_DIC_of.emmc)
-    #DIC_of.emmc<-as.data.frame(DIC_of.emmc[complete.cases(DIC_of.emmc),])
-    Ar_DIC_of.emmc<-Ar_DIC_of.emmc[order(Ar_DIC_of.emmc$Sub_region),]
-    Ar_DIC_of.emmc
-#write.csv(DIC_of.emmc, "FLK_results/Model_DIC_of.emmc_POST.csv")
-```
-
-```{r}
-# Create a new data frame for independent variables  
-  Of_Newdata<-expand.grid(Zone=unique(Contributions2.of$Zone),
-                          Sub_region=unique(Contributions2.of$Sub_region),
-                          Year=seq((min(Contributions2.of$Year)),
-                                   (max(Contributions2.of$Year))))
-  Of_DIC_Pred <- predict(Ar_DIC_of, newdata=Of_Newdata, re.form=NA, level=0, 
-                        asList = FALSE)
-  
-  Of_DIC_Pred <-cbind(Of_Newdata, Of_DIC_Pred)
-  Of_DIC_Pred$Date<-as.Date(as.character(Of_DIC_Pred$Year), format = "%Y")
-  
-  # Model summary for labels
-  slope<-round(summary(Ar_DIC_of)$coefficients["Year", "Estimate"], digits = 3)
-  #xs <- as.Date(as.character("2018-11-20"))
-  #ys <- max(Contributions2$Arg_DIC-0.5, na.rm =T)
-  plot_label <- sprintf("\"\" ~ DIC == %0.3f", slope)
-  plot_label2 <- expression("Year^-1")
-  
-# Plot raw data point and fitted model 
-  Arg_Of_DIC_Modeled<-Long_plot2+
-     scale_y_continuous(limits = c(-3, 3),
-                       name=(expression(~Omega[Ar]~"_DIC")),
-                       #breaks = seq(0, 10, 0.5),  
-                       expand = c(0.02, 0.02)) +
-    
-      geom_point(data=Contributions2.of, 
-                               aes(y=Arg_DIC, x=Date, 
-                                  fill = Sub_region), 
-                                  #colour = Sub_region), 
-                               alpha=0.5, size=0.5, shape=24)+
-      geom_line(data=Of_DIC_Pred, aes(y = Of_DIC_Pred,
-                                      x=Date, colour = Sub_region), linetype=1, size=1)+
-      annotate(geom="text", x = as.Date(xs), y = ys, parse=TRUE,
-               #label = expression("~DIC[Ar] == -0.015** ~Year ^-1"),
-               label =paste0(as.character(plot_label, plot_label2, sep = " ")),
-               size=4)
-  Arg_Of_DIC_Modeled
-```
-
-## DIC - Oceanic
-
-```{r, fig.height=4, fig.width=6}
-hist(Contributions2.oc$Arg_DIC)
-shapiro.test(Contributions2.oc$Arg_DIC)# Normality NOT rejected
-
-Arg_DIC_oc_0<-lmer(Arg_DIC ~ Year * Sub_region + 
-               (1 | Month)+ (1|SiteID),
-               data=Contributions2.oc)
-  #summary(Arg_DIC_oc_0)
-  anova(Arg_DIC_oc_0)
-  ranova(Arg_DIC_oc_0)
-  step(Arg_DIC_oc_0)
-
-Ar_DIC_oc<-lmer(Arg_DIC ~ Year + (1 | Month), data = Contributions2.oc)
-  summary(Ar_DIC_oc)
-  anova(Ar_DIC_oc)
-  
-plot(Ar_DIC_oc)
-  par(mfrow=c(1,2))
-  qqnorm(resid(Ar_DIC_oc))
-  acf(resid(Ar_DIC_oc), main="acf(resid(DIC ocean))")
-  par(mfrow=c(1,1))
-  
-Arg_DIC_oc.emmc<-emmeans(Ar_DIC_oc, ~Year)
-    #Arg_DIC_oc.emmc<-multcomp::cld(Arg_DIC_oc.emmc)
-    #Arg_DIC_oc.emmc
-```
-
-```{r}
-# Create a new data frame for independent variables  
-  Oc_Newdata<-expand.grid(one=unique(Contributions2.oc$Zone),
-                                Sub_region=unique(Contributions2.oc$Sub_region),
-                          Year=seq((min(Contributions2.oc$Year)), (max(Contributions2.oc$Year))))
-  Oc_DIC_Pred <- predict(Ar_DIC_oc, newdata=Oc_Newdata, re.form=NA, level=0, asList = FALSE)
-  
-  Oc_DIC_Pred <-cbind(Oc_Newdata, Oc_DIC_Pred)
-  Oc_DIC_Pred$Date<-as.Date(as.character(Oc_DIC_Pred$Year), format = "%Y")
-  
-# Model summary for labels
-  slope<-round(summary(Ar_DIC_oc)$coefficients["Year", "Estimate"], digits = 3)
-  #xs <- as.Date(as.character("2018-11-20"))
-  #ys <- max(Contributions2.oc$Arg_DIC, na.rm =T)
-  plot_label <- sprintf("\"\" ~ DIC == %0.3f", slope)
-  plot_label2 <- expression("Year^-1")
-  
-# Plot raw data point and fitted model 
-  Arg_Oc_DIC_Modeled<-Long_plot2+ #facet_grid(~Zone)+
-     scale_y_continuous(limits = c(-3,3),
-                       name=(~Omega[Ar]~"_DIC"),
-                       #breaks = seq(0, 10, 0.5),  
-                       expand = c(0.02, 0.02)) +
-    
-      geom_point(data=Contributions2.oc, 
-                               aes(y=Arg_DIC, x=Date, 
-                                   fill = Sub_region), 
-                                   #colour = Sub_region), 
-                               alpha=0.5, size=0.5, shape=25)+
-      geom_line(data=Oc_DIC_Pred, aes(y = Oc_DIC_Pred,
-                                      x=Date), linetype=1, size=1, colour = "black") +
-    
-      annotate(geom="text", x = as.Date(xs), y = ys, parse=TRUE,
-               #label = expression("~DIC[Ar] == -0.015** ~Year ^-1"), 
-               label =paste0(as.character(plot_label, plot_label2, sep = " ")),
-               size=4)
-  Arg_Oc_DIC_Modeled
-```
-
-## Models summary
-
-Complete models
-
-```{r , all fixed factors summary - Arg-DIC}
-# ANOVAs
-    # Convert ANOVA results into dataframes allows for easier name manipulation
-    av.Arg_DIC_in_0 <- data.frame (anova(Arg_DIC_in_0))
-    av.Arg_DIC_mc_0 <- data.frame (anova(Arg_DIC_mc_0) )
-    av.Arg_DIC_of_0 <- data.frame (anova(Arg_DIC_of_0))
-    av.Arg_DIC_oc_0 <- data.frame (anova(Arg_DIC_oc_0))
-    
-    # Putting all into one dataframe/table
-    anova_Arg_DIC_0 <- data.frame(cbind
-                    (c("Year", "Sub_region", "Year:Sub_region", 
-                       "Year", "Sub_region", "Year:Sub_region",
-                       "Year", "Sub_region", "Year:Sub_region",
-                       "Year", "Sub_region", "Year:Sub_region"), 
-                                      rbind(av.Arg_DIC_in_0, av.Arg_DIC_mc_0,
-                                            av.Arg_DIC_of_0, av.Arg_DIC_oc_0))) 
-    colnames(anova_Arg_DIC_0) <- c("", "Sum Sq", "Mean Sq", "N Df" , "D Df",
-                                     "F value", "Pr(>F)")
-    row.names(anova_Arg_DIC_0) <- NULL
-    
-    # create HTML table using kableExtra
-    anova_Arg_DIC_0 %>% kable("html", digits=2, 
-        caption="Initial Arg-DIC models fixed factors: Year * Region") %>% 
-      kable_styling(bootstrap_options = "striped", full_width = F) %>% 
-      pack_rows(., "Arg_DIC inshore", 1, 3) %>% # groups rows with label
-      pack_rows(., "Arg_DIC mid-channel", 4, 6)  %>% # groups rows with label
-      pack_rows(., "Arg_DIC offshore", 7, 9) %>% # groups rows with label
-      pack_rows(., "Arg_DIC ocean", 10, 12)  
-```
-
-```{r}
-
-# R-ANOVAs    
-    rav.Ar_DIC_in_0 <- data.frame (ranova(Arg_DIC_in_0))
-    rav.Ar_DIC_mc_0 <- data.frame (ranova(Arg_DIC_mc_0) )
-    rav.Ar_DIC_of_0 <- data.frame (ranova(Arg_DIC_of_0))
-    rav.Ar_DIC_oc_0 <- data.frame (ranova(Arg_DIC_oc_0))
-    
-    # Putting all into one dataframe/table
-    ranova_Ar_DIC_0 <- data.frame(cbind
-                    (c("<none>", "(1 | Month)", "(1 | SiteID)",
-                       "<none>", "(1 | Month)", "(1 | SiteID)",
-                       "<none>", "(1 | Month)", "(1 | SiteID)",
-                       "<none>", "(1 | Month)", "(1 | SiteID)"), 
-                      rbind(rav.DIC_in_0, rav.DIC_mc_0,
-                            rav.DIC_of_0, rav.DIC_oc_0))) 
-    colnames(ranova_Ar_DIC_0) <- c("", "npar", "logLik", "AIC" , "LRT",
-                                     "DF", "Pr(>Chi Sq)")
-    row.names(ranova_Ar_DIC_0) <- NULL
-    
-    # create HTML table using kableExtra
-    ranova_Ar_DIC_0 %>% kable("html", digits=2,
-         caption="Initial Ar-DIC models random factors: Month+station") %>% 
-      kable_styling(bootstrap_options = "striped", full_width = F) %>% 
-      pack_rows(., "Ar_DIC inshore", 1, 3) %>% # groups rows with label
-      pack_rows(., "Ar_DIC mid-channel", 4, 6)  %>% # groups rows with label
-      pack_rows(., "Ar_DIC offshore", 7, 9) %>% # groups rows with label
-      pack_rows(., "Ar_DIC ocean", 10, 12)  
-
-```
-
-```{r}
-Arg_DIC_models_0<-list("Inshore" = Arg_DIC_in_0, 
-                   "Mid channel" = Arg_DIC_mc_0, 
-                   "Offshore" = Arg_DIC_of_0, 
-                   "Ocean" = Arg_DIC_oc_0)
-modelsummary(DIC_models_0, stars = TRUE, 
-             #statistic = c('std.error', 'p.value', 'conf.int'),
-             title = 'Initial Arg_DIC model outputs (all factors)',
-             coef_map=factor_order)
-#modelsummary(DIC_models, estimate = "p.value")
-```
-
-Models with non-significant factors removed
-
-```{r DIC-Arg dropped models}
-Ar_DIC_models<-list("Inshore" = Arg_DIC_in, 
-                   "Mid channel" = Ar_DIC_mc, 
-                   "Offshore" = Ar_DIC_of, 
-                   "Ocean" = Ar_DIC_oc)
-modelsummary(Ar_DIC_models, stars = TRUE, 
-            #statistic = c('std.error', 'p.value', 'conf.int'),
-             title = 'Final Arg_DIC model outputs (dropped factors)',
-             coef_map=factor_order)
-
-#modelsummary(Ar_DIC_models, output = "FLK_results/Figures/Fig_2/Trend_DIC.docx")
-#modelsummary(Ar_DIC_models, estimate = "p.value")
-
-```
-
-```{r DIC-Arg model plot, fig.height=4, fig.width=8}
-Trends_Arg_DIC<-ggarrange(Arg_In_DIC_Modeled+ theme(
-                                          axis.text.x=element_blank(),
-                                          legend.position = "none"),
-                  Arg_Mc_DIC_Modeled+ theme(legend.position = "none",
-                                           axis.text.x=element_blank(),
-                                           axis.title.y=element_blank()),
-                                
-                  Arg_Of_DIC_Modeled + theme(legend.position = "none",
-                                           axis.text.x=element_blank(),
-                                           axis.title.y=element_blank()),
-                                
-                  Arg_Oc_DIC_Modeled + theme(legend.position = "none",
-                                           axis.text.x=element_blank(),
-                                           axis.title.y=element_blank()),
-                                           
-          #labels = c("D"),
-          ncol = 4, nrow = 1, widths =c(1.1, 1, 1, 1))
-Trends_Arg_DIC
-```
-
-## Sal - Inshore
-
-```{r, fig.height=4, fig.width=6}
-# Inshore Sal
-  hist(Contributions2.in$Arg_Sal)
-  shapiro.test(Contributions2.in$Arg_Sal) # Normality rejected
-
-  Arg_Sal_in_0<-lmer(Arg_Sal~Year * Sub_region + (1|Month)+
-                                    #(1|Zone)+             
-                                    (1|SiteID), 
-                    data=Contributions2.in)
-  #summary(Arg_Sal_in_0)
-  step(Arg_Sal_in_0)
-    
-  Arg_Sal_in<-lmer(Arg_Sal ~ Year * Sub_region +
-               (1 | Month), data=Contributions2.in)
-    anova(Arg_Sal_in)
-    ranova(Arg_Sal_in)
-    summary(Arg_Sal_in)
-    
-  plot(Arg_Sal_in)
-    par(mfrow=c(1,2))
-    qqnorm(resid(Arg_Sal_in))
-    acf(resid(Arg_Sal_in), main="acf(resid(Arg Sal Inshore))")
-    par(mfrow=c(1,1))
-  
-  Arg_Sal_in.emmc<-emmeans(Arg_Sal_in, ~Sub_region)
-    Arg_Sal_in.emmc<-multcomp::cld(Arg_Sal_in.emmc)
-    #Arg_Sal_in.emmc<-as.data.frame(Arg_Sal_in.emmc[complete.cases(Arg_Sal_in.emmc),])
-    Arg_Sal_in.emmc<-Arg_Sal_in.emmc[order(Arg_Sal_in.emmc$Sub_region),]
-    Arg_Sal_in.emmc
-  #write.csv(Arg_Sal_in.emmc, "FLK_results/Arg_Sal_in.emmc_POST.csv")
-```
-
-```{r}
-# Create a new data frame for independent variables  
-  In_Newdata<-expand.grid(Sub_region=unique(Contributions2$Sub_region),
-                          Year=seq((min(Contributions2$Year)-0.0),
-                                   (max(Contributions2$Year)+0.0)))
-
-  In_ArSal_Pred <- predict(Arg_Sal_in, newdata=In_Newdata, 
-                         re.form=NA, level=0, asList = FALSE)
-  
-  In_ArSal_Pred <-cbind(In_Newdata, In_ArSal_Pred)
-  In_ArSal_Pred$Date<-as.Date(as.character(In_ArSal_Pred$Year), 
-                              format = "%Y")
-  
-  # Model summary for labels
-  slope<-round(summary(Arg_Sal_in)$coefficients["Year", "Estimate"], digits = 3)
-  #xs <- as.Date(as.character("2018-11-20"))
-  ys <- max(Contributions2$Arg_Sal-0.05, na.rm =T)
-  plot_label <- sprintf("\"\" ~ Arg_Sal == %0.3f", slope)
-  plot_label2 <- expression("Year^-1")
-  
-  
-# Plot raw data point and fitted model 
-  
-  Arg_In_Sal_Modeled<-Long_plot2+ 
-     scale_y_continuous(limits = c(-0.25,0.25),
-                       name=(expression(~Omega[Ar]~"_Salinity")),
-                       #breaks = seq(0, 10, 0.5),  
-                       expand = c(0.01, 0.01)) +
-    
-      geom_point(data=Contributions2, 
-                               aes(y=Arg_Sal, x=Date, 
-                                  fill = Sub_region), 
-                                  #colour = Sub_region), 
-                               alpha=0.5, size=0.5, shape=21)+
-      geom_line(data=In_ArSal_Pred, aes(y = In_ArSal_Pred,
-                                      x=Date, colour = Sub_region), 
-                                linetype=1, size=1)+
-      annotate(geom="text", x = as.Date(xs), y = ys, parse=TRUE,
-               #label = expression("~Sal[Ar] == -0.015** ~Year ^-1"),
-               label =paste0(as.character(plot_label, plot_label2, sep = " ")),
-               size=4)
-  Arg_In_Sal_Modeled
-```
-
-## Sal - Mid channel
-
-```{r, fig.height=4, fig.width=6}
-hist(Contributions2.mc$Arg_Sal)
-shapiro.test(Contributions2.mc$Arg_Sal)# Normality rejected
-
-Arg_Sal_mc_0<-lmer(Arg_Sal~Year * Sub_region + (1|Month) + 
-                                  #(1|Zone)+             
-                                  (1|SiteID), data=Contributions2.mc)
-  anova(Arg_Sal_mc_0)
-  ranova(Arg_Sal_mc_0)
-  step(Arg_Sal_mc_0)
-
-
-Ar_Sal_mc<-lmer(Arg_Sal ~ Year + (1 | Month),
-               data = Contributions2.mc)
-  summary(Ar_Sal_mc) 
-  anova(Ar_Sal_mc)
-  
-  plot(Ar_Sal_mc)
-    par(mfrow=c(1,2))
-    qqnorm(resid(Ar_Sal_mc))
-    acf(resid(Ar_Sal_mc), main="acf(resid(Arg Sal mid Channel))")  
-    par(mfrow=c(1,1))
-    
-  Ar_Sal_md.emmc<-emmeans(Ar_Sal_mc, ~Year)
-    Ar_Sal_md.emmc<-multcomp::cld(Ar_Sal_md.emmc)
-    #Sal_md.emmc<-as.data.frame(Sal_md.emmc[complete.cases(Sal_md.emmc),])
-    Ar_Sal_md.emmc
-  #write.csv(Sal_md.emmc, "FLK_results/Model_Sal_mc_POST.csv")
-```
-
-```{r}
-# Create a new data frame for independent variables  
-  Mc_Newdata<-expand.grid(Sub_region=unique(Contributions2.mc$Sub_region),
-                          Year=seq((min(Contributions2.mc$Year)-0),
-                                   (max(Contributions2.mc$Year)+0)))
-
-  Mc_Sal_Pred <- predict(Ar_Sal_mc, newdata=Mc_Newdata, 
-                         re.form=NA, level=0, asList = FALSE)
-  
-  Mc_Sal_Pred <-cbind(Mc_Newdata, Mc_Sal_Pred)
-  Mc_Sal_Pred$Date<-as.Date(as.character(Mc_Sal_Pred$Year), format = "%Y")
-  
-  # Model summary for labels
-  slope<-round(summary(Ar_Sal_mc)$coefficients["Year", "Estimate"], digits = 3)
-  #xs <- as.Date(as.character("2018-11-20"))
-  #ys <- max(Trends.inshore$Arg_Sal, na.rm =T)
-  #ys <- max(Contributions2$Arg_Sal-0.5, na.rm =T)
-  plot_label <- sprintf("\"\" ~ Arg_Sal == %0.3f", slope)
-  plot_label2 <- expression("Year^-1")
-  
-# Plot raw data point and fitted model 
-  Arg_Mc_Sal_Modeled<-Long_plot2+ 
-     scale_y_continuous(limits = c(-0.25,0.25),
-                       name=(expression(~Omega[Ar]~"_Sal")),
-                       #breaks = seq(0, 10, 0.5),  
-                       expand = c(0.01, 0.01)) +
-      geom_point(data=Contributions2.mc, 
-                               aes(y=Arg_Sal, x=Date, 
-                                  fill = Sub_region), 
-                                  #colour = Sub_region), 
-                               alpha=0.5, size=0.5, shape=23)+
-      geom_line(data=Mc_Sal_Pred, aes(y = Mc_Sal_Pred,
-                                      x=Date), colour = "black",
-                linetype=1, size=1) +
-      annotate(geom="text", x = as.Date(xs), y = ys, parse=TRUE,
-               #label = expression("~Sal[Ar] == -0.015** ~Year ^-1"),
-               label =paste0(as.character(plot_label, plot_label2, sep = " ")),
-               size=4)
-  Arg_Mc_Sal_Modeled
-```
-
-## Sal - Offshore
-
-```{r, fig.height=4, fig.width=6}
-hist(Contributions2.of$Arg_Sal)
-shapiro.test(Contributions2.of$Arg_Sal)# Normality rejected
-
-Arg_Sal_of_0<-lmer(Arg_Sal~Year * Sub_region + 
-               (1|Month) + (1|SiteID),
-               data=Contributions2.of)
-  #summary(Arg_Sal_of_0)    
-  anova(Arg_Sal_of_0)
-  ranova(Arg_Sal_of_0)
-  step(Arg_Sal_of_0)
-
-Ar_Sal_of<-lmer(Arg_Sal ~ Year + (1 | Month), 
-               data =Contributions2.of)
-  summary(Ar_Sal_of)
-  anova(Ar_Sal_of) 
-
-plot(Ar_Sal_of)
-  par(mfrow=c(1,2))
-  qqnorm(resid(Ar_Sal_of))
-  acf(resid(Ar_Sal_of), main="acf(resid(Arg - Sal offshore))")  
-  par(mfrow=c(1,1))
-    
-  Ar_Sal_of.emmc<-emmeans(Ar_Sal_of, ~Year)
-    Ar_Sal_of.emmc<-multcomp::cld(Ar_Sal_of.emmc)
-    #Ar_Sal_of.emmc<-Ar_Sal_of.emmc[order(Ar_Sal_of.emmc$Sub_region),]
-    Ar_Sal_of.emmc
-#write.csv(Sal_of.emmc, "FLK_results/Model_Sal_of.emmc_POST.csv")
-```
-
-```{r}
-# Create a new data frame for independent variables  
-  Of_Newdata<-expand.grid(Zone=unique(Contributions2.of$Zone),
-                          Sub_region=unique(Contributions2.of$Sub_region),
-                          Year=seq((min(Contributions2.of$Year)),
-                                   (max(Contributions2.of$Year))))
-  Of_Sal_Pred <- predict(Ar_Sal_of, newdata=Of_Newdata, re.form=NA, level=0, 
-                        asList = FALSE)
-  
-  Of_Sal_Pred <-cbind(Of_Newdata, Of_Sal_Pred)
-  Of_Sal_Pred$Date<-as.Date(as.character(Of_Sal_Pred$Year), format = "%Y")
-  
-  # Model summary for labels
-  slope<-round(summary(Ar_Sal_of)$coefficients["Year", "Estimate"], digits = 3)
-  #xs <- as.Date(as.character("2018-11-20"))
-  #ys <- max(Contributions2$Arg_Sal-0.5, na.rm =T)
-  plot_label <- sprintf("\"\" ~ Sal == %0.3f", slope)
-  plot_label2 <- expression("Year^-1")
-  
-# Plot raw data point and fitted model 
-  Arg_Of_Sal_Modeled<-Long_plot2+
-     scale_y_continuous(limits = c(-0.25,0.25),
-                       name=(expression(~Omega[Ar]~"_Sal")),
-                       #breaks = seq(0, 10, 0.5),  
-                       expand = c(0.01, 0.01)) +
-    
-      geom_point(data=Contributions2.of, 
-                               aes(y=Arg_Sal, x=Date, 
-                                  fill = Sub_region), 
-                                  #colour = Sub_region), 
-                               alpha=0.5, size=0.5, shape=24)+
-      geom_line(data=Of_Sal_Pred, aes(y = Of_Sal_Pred,
-                                      x=Date), colour = "black", linetype=1, size=1)+
-      annotate(geom="text", x = as.Date(xs), y = ys, parse=TRUE,
-               #label = expression("~Sal[Ar] == -0.015** ~Year ^-1"),
-               label =paste0(as.character(plot_label, plot_label2, sep = " ")),
-               size=4)
-  Arg_Of_Sal_Modeled
-```
-
-## Sal - Oceanic
-
-```{r, fig.height=4, fig.width=6}
-hist(Contributions2.oc$Arg_Sal)
-shapiro.test(Contributions2.oc$Arg_Sal)# Normality NOT rejected
-
-Arg_Sal_oc_0<-lmer(Arg_Sal ~ Year * Sub_region + 
-               (1 | Month)+ (1|SiteID),
-               data=Contributions2.oc)
-  #summary(Arg_Sal_oc_0)
-  anova(Arg_Sal_oc_0)
-  ranova(Arg_Sal_oc_0)
-  step(Arg_Sal_oc_0)
-
-Ar_Sal_oc<-lmer(Arg_Sal ~ Year + (1 | Month), data = Contributions2.oc)
-  summary(Ar_Sal_oc)
-  anova(Ar_Sal_oc)
-  
-plot(Ar_Sal_oc)
-  par(mfrow=c(1,2))
-  qqnorm(resid(Ar_Sal_oc))
-  acf(resid(Ar_Sal_oc), main="acf(resid(Sal ocean))")
-  par(mfrow=c(1,1))
-  
-Arg_Sal_oc.emmc<-emmeans(Ar_Sal_oc, ~Year)
-    #Arg_Sal_oc.emmc<-multcomp::cld(Arg_Sal_oc.emmc)
-    #Arg_Sal_oc.emmc
-```
-
-```{r}
-# Create a new data frame for independent variables  
-  Oc_Newdata<-expand.grid(one=unique(Contributions2.oc$Zone),
-                                Sub_region=unique(Contributions2.oc$Sub_region),
-                          Year=seq((min(Contributions2.oc$Year)), (max(Contributions2.oc$Year))))
-  Oc_Sal_Pred <- predict(Ar_Sal_oc, newdata=Oc_Newdata, re.form=NA, level=0, asList = FALSE)
-  
-  Oc_Sal_Pred <-cbind(Oc_Newdata, Oc_Sal_Pred)
-  Oc_Sal_Pred$Date<-as.Date(as.character(Oc_Sal_Pred$Year), format = "%Y")
-  
-# Model summary for labels
-  slope<-round(summary(Ar_Sal_oc)$coefficients["Year", "Estimate"], digits = 3)
-  #xs <- as.Date(as.character("2018-11-20"))
-  #ys <- max(Contributions2.oc$Arg_Sal, na.rm =T)
-  plot_label <- sprintf("\"\" ~ Sal == %0.3f", slope)
-  plot_label2 <- expression("Year^-1")
-  
-# Plot raw data point and fitted model 
-  Arg_Oc_Sal_Modeled<-Long_plot2+ #facet_grid(~Zone)+
-    scale_y_continuous(limits = c(-0.25,0.25),
-                       name=(expression(~Omega[Ar]~"_Sal")),
-                       #breaks = seq(0, 10, 0.5),  
-                       expand = c(0.01, 0.01)) +
-    
-      geom_point(data=Contributions2.oc, 
-                               aes(y=Arg_Sal, x=Date, 
-                                   fill = Sub_region), 
-                                   #colour = Sub_region), 
-                               alpha=0.5, size=0.5, shape=25)+
-      geom_line(data=Oc_Sal_Pred, aes(y = Oc_Sal_Pred,
-                                      x=Date), linetype=1, size=1, colour = "black") +
-    
-      annotate(geom="text", x = as.Date(xs), y = ys, parse=TRUE,
-               #label = expression("~Sal[Ar] == -0.015** ~Year ^-1"), 
-               label =paste0(as.character(plot_label, plot_label2, sep = " ")),
-               size=4)
-  Arg_Oc_Sal_Modeled
-```
-
-## Models summary
-
-Complete models
-
-```{r , all fixed factors summary - Sal}
-# ANOVAs
-    # Convert ANOVA results into dataframes allows for easier name manipulation
-    av.Arg_Sal_in_0 <- data.frame (anova(Arg_Sal_in_0))
-    av.Arg_Sal_mc_0 <- data.frame (anova(Arg_Sal_mc_0) )
-    av.Arg_Sal_of_0 <- data.frame (anova(Arg_Sal_of_0))
-    av.Arg_Sal_oc_0 <- data.frame (anova(Arg_Sal_oc_0))
-    
-    # Putting all into one dataframe/Table
-    anova_Arg_Sal_0 <- data.frame(cbind
-                    (c("Year", "Sub_region", "Year:Sub_region", 
-                       "Year", "Sub_region", "Year:Sub_region",
-                       "Year", "Sub_region", "Year:Sub_region",
-                       "Year", "Sub_region", "Year:Sub_region"), 
-                                      rbind(av.Arg_Sal_in_0, av.Arg_Sal_mc_0,
-                                            av.Arg_Sal_of_0, av.Arg_Sal_oc_0))) 
-    colnames(anova_Arg_Sal_0) <- c("", "Sum Sq", "Mean Sq", "N Df" , "D Df",
-                                     "F value", "Pr(>F)")
-    row.names(anova_Arg_Sal_0) <- NULL
-    
-    # create HTML Table using kableExtra
-    anova_Arg_Sal_0 %>% kable("html", digits=2, 
-        caption="Initial Arg-Sal models fixed factors: Year * Region") %>% 
-      kable_styling(bootstrap_options = "striped", full_width = F) %>% 
-      pack_rows(., "Arg_Sal inshore", 1, 3) %>% # groups rows with label
-      pack_rows(., "Arg_Sal mid-channel", 4, 6)  %>% # groups rows with label
-      pack_rows(., "Arg_Sal offshore", 7, 9) %>% # groups rows with label
-      pack_rows(., "Arg_Sal ocean", 10, 12)  
-```
-
-```{r}
-# R-ANOVAs    
-    rav.Ar_Sal_in_0 <- data.frame (ranova(Arg_Sal_in_0))
-    rav.Ar_Sal_mc_0 <- data.frame (ranova(Arg_Sal_mc_0) )
-    rav.Ar_Sal_of_0 <- data.frame (ranova(Arg_Sal_of_0))
-    rav.Ar_Sal_oc_0 <- data.frame (ranova(Arg_Sal_oc_0))
-    
-    # Putting all into one dataframe/Table
-    ranova_Ar_Sal_0 <- data.frame(cbind
-                    (c("<none>", "(1 | Month)", "(1 | SiteID)",
-                       "<none>", "(1 | Month)", "(1 | SiteID)",
-                       "<none>", "(1 | Month)", "(1 | SiteID)",
-                       "<none>", "(1 | Month)", "(1 | SiteID)"), 
-                      rbind(rav.Ar_Sal_in_0, rav.Ar_Sal_mc_0,
-                            rav.Ar_Sal_of_0, rav.Ar_Sal_oc_0))) 
-    colnames(ranova_Ar_Sal_0) <- c("", "npar", "logLik", "AIC" , "LRT",
-                                     "DF", "Pr(>Chi Sq)")
-    row.names(ranova_Ar_Sal_0) <- NULL
-    
-    # create HTML Table using kableExtra
-    ranova_Ar_Sal_0 %>% kable("html", digits=2,
-         caption="Initial Ar-Sal models random factors: Month+Station") %>% 
-      kable_styling(bootstrap_options = "striped", full_width = F) %>% 
-      pack_rows(., "Ar_Sal inshore", 1, 3) %>% # groups rows with label
-      pack_rows(., "Ar_Sal mid-channel", 4, 6)  %>% # groups rows with label
-      pack_rows(., "Ar_Sal offshore", 7, 9) %>% # groups rows with label
-      pack_rows(., "Ar_Sal ocean", 10, 12)  
-
-```
-
-```{r}
-Arg_Sal_models_0<-list("Inshore" = Arg_Sal_in_0, 
-                   "Mid channel" = Arg_Sal_mc_0, 
-                   "Offshore" = Arg_Sal_of_0, 
-                   "Ocean" = Arg_Sal_oc_0)
-modelsummary(Arg_Sal_models_0, stars = TRUE, 
-             #statistic = c('std.error', 'p.value', 'conf.int'),
-             title = 'Initial Arg_Sal model outputs (all factors)',
-             coef_map=factor_order)
-#modelsummary(Sal_models, estimate = "p.value")
-```
-
-Models with non-significant factors removed
-
-```{r Stats Arg dropped models}
-Ar_Sal_models<-list("Inshore" = Arg_Sal_in, 
-                   "Mid channel" = Ar_Sal_mc, 
-                   "Offshore" = Ar_Sal_of, 
-                   "Ocean" = Ar_Sal_oc)
-modelsummary(Ar_Sal_models, stars = TRUE, 
-            #statistic = c('std.error', 'p.value', 'conf.int'),
-             title = 'Final Arg_Sal model outputs (dropped factors)',
-             coef_map=factor_order)
-
-#modelsummary(Ar_Sal_models, output = "FLK_results/Figures/Fig_2/Trend_Sal.docx")
-#modelsummary(Ar_Sal_models, estimate = "p.value")
-
-```
-
-
-```{r Sal model plot, fig.height=4, fig.width=8}
-Trends_Arg_Sal<-ggarrange(Arg_In_Sal_Modeled+ theme(
-                                          axis.text.x=element_blank(),
-                                          legend.position = "none"),
-                  Arg_Mc_Sal_Modeled+ theme(legend.position = "none",
-                                           axis.text.x=element_blank(),
-                                           axis.title.y=element_blank()),
-                                
-                  Arg_Of_Sal_Modeled + theme(legend.position = "none",
-                                           axis.text.x=element_blank(),
-                                           axis.title.y=element_blank()),
-                                
-                  Arg_Oc_Sal_Modeled + theme(legend.position = "none",
-                                           axis.text.x=element_blank(),
-                                           axis.title.y=element_blank()),
-                                           
-          #labels = c("D"),
-          ncol = 4, nrow = 1, widths =c(1.1, 1, 1, 1))
-Trends_Arg_Sal
-```
-
-
-## Tem - Inshore
-
-```{r, fig.height=4, fig.width=6}
-# Inshore Tem
-  hist(Contributions2.in$Arg_Tem)
-  shapiro.test(Contributions2.in$Arg_Tem) # Normality rejected
-
-  Arg_Tem_in_0<-lmer(Arg_Tem ~ Year * Sub_region + (1|Month)+
-                                    #(1|Zone)+             
-                                    (1|SiteID), 
-                    data=Contributions2.in)
-  #summary(Arg_Tem_in_0)
-  step(Arg_Tem_in_0)
-    
-  Arg_Tem_in<-lmer(Arg_Tem ~ (1 | Month), data=Contributions2.in)
-    anova(Arg_Tem_in)
-    ranova(Arg_Tem_in)
-    summary(Arg_Tem_in)
-    
-  plot(Arg_Tem_in)
-    par(mfrow=c(1,2))
-    qqnorm(resid(Arg_Tem_in))
-    acf(resid(Arg_Tem_in), main="acf(resid(Arg Tem Inshore))")
-    par(mfrow=c(1,1))
-  
-  # Arg_Tem_in.emmc<-emmeans(Arg_Tem_in, ~Sub_region)
-  #   Arg_Tem_in.emmc<-multcomp::cld(Arg_Tem_in.emmc)
-  #   Arg_Tem_in.emmc<-Arg_Tem_in.emmc[order(Arg_Tem_in.emmc$Sub_region),]
-  #   Arg_Tem_in.emmc
-  # #write.csv(Arg_Tem_in.emmc, "FLK_results/Arg_Tem_in.emmc_POST.csv")
-```
-
-```{r}
-# Create a new data frame for independent variables  
-  In_Newdata<-expand.grid(Sub_region=unique(Contributions2$Sub_region),
-                          Year=seq((min(Contributions2$Year)-0.0),
-                                   (max(Contributions2$Year)+0.0)))
-
-  In_ArTem_Pred <- predict(Arg_Tem_in, newdata=In_Newdata, 
-                         re.form=NA, level=0, asList = FALSE)
-  
-  In_ArTem_Pred <-cbind(In_Newdata, In_ArTem_Pred)
-  In_ArTem_Pred$Date<-as.Date(as.character(In_ArTem_Pred$Year), 
-                              format = "%Y")
-  
-  # Model summary for labels
-  #slope<-round(summary(Arg_Tem_in)$coefficients["Year", "Estimate"], digits = 3)
-  #xs <- as.Date(as.character("2018-11-20"))
-  ys <- max(Contributions2$Arg_Tem-0.5, na.rm =T)
-  plot_label <- sprintf("\"\" ~ Arg_Tem == %0.3f", slope)
-  plot_label2 <- expression("Year^-1")
-  
-  
-# Plot raw data point and fitted model 
-  Arg_In_Tem_Modeled<-Long_plot2+ 
-      scale_y_continuous(limits = c(-0.25,0.25),
-                       name=(expression(~Omega[Ar]~"_Temperature")),
-                       #breaks = seq(0, 10, 0.5),  
-                       expand = c(0.01, 0.01)) +
-    
-      geom_point(data=Contributions2, 
-                               aes(y=Arg_Tem, x=Date, 
-                                  fill = Sub_region), 
-                                  #colour = Sub_region), 
-                               alpha=0.5, size=0.5, shape=21)+
-      geom_line(data=In_ArTem_Pred, aes(y = In_ArTem_Pred,
-                                      x=Date), colour = "black", 
-                                linetype=2, size=1)+
-      annotate(geom="text", x = as.Date(xs), y = ys, parse=TRUE,
-               #label = expression("~Tem[Ar] == -0.015** ~Year ^-1"),
-               label =paste0(as.character(plot_label, plot_label2, sep = " ")),
-               size=4)
-  Arg_In_Tem_Modeled
-```
-
-## Tem - Mid channel
-
-```{r, fig.height=4, fig.width=6}
-hist(Contributions2.mc$Arg_Tem)
-shapiro.test(Contributions2.mc$Arg_Tem)# Normality rejected
-
-Arg_Tem_mc_0<-lmer(Arg_Tem~Year * Sub_region + (1|Month) + 
-                                  #(1|Zone)+             
-                                  (1|SiteID), data=Contributions2.mc)
-  anova(Arg_Tem_mc_0)
-  ranova(Arg_Tem_mc_0)
-  step(Arg_Tem_mc_0)
-
-
-Ar_Tem_mc<-lmer(Arg_Tem ~ (1 | Month),
-               data = Contributions2.mc)
-  summary(Ar_Tem_mc) 
-  anova(Ar_Tem_mc)
-  
-  plot(Ar_Tem_mc)
-    par(mfrow=c(1,2))
-    qqnorm(resid(Ar_Tem_mc))
-    acf(resid(Ar_Tem_mc), main="acf(resid(Arg Tem mid Channel))")  
-    par(mfrow=c(1,1))
-    
-  # Ar_Tem_md.emmc<-emmeans(Ar_Tem_mc, ~Sub_region)
-  #   Ar_Tem_md.emmc<-multcomp::cld(Ar_Tem_md.emmc)
-  #   Ar_Tem_md.emmc<-Ar_Tem_md.emmc[order(Ar_Tem_md.emmc$Sub_region),]
-  #   Ar_Tem_md.emmc
-  # #write.csv(Tem_md.emmc, "FLK_results/Model_Tem_mc_POST.csv")
-```
-
-```{r}
-# Create a new data frame for independent variables  
-  Mc_Newdata<-expand.grid(Sub_region=unique(Contributions2.mc$Sub_region),
-                          Year=seq((min(Contributions2.mc$Year)-0),
-                                   (max(Contributions2.mc$Year)+0)))
-
-  Mc_Tem_Pred <- predict(Ar_Tem_mc, newdata=Mc_Newdata, 
-                         re.form=NA, level=0, asList = FALSE)
-  
-  Mc_Tem_Pred <-cbind(Mc_Newdata, Mc_Tem_Pred)
-  Mc_Tem_Pred$Date<-as.Date(as.character(Mc_Tem_Pred$Year), format = "%Y")
-  
-  # Model summary for labels
-  #slope<-round(summary(Ar_Tem_mc)$coefficients["Year", "Estimate"], digits = 3)
-  #xs <- as.Date(as.character("2018-11-20"))
-  #ys <- max(Trends.inshore$Arg_Tem, na.rm =T)
-  #ys <- max(Contributions2$Arg_Tem-0.5, na.rm =T)
-  plot_label <- sprintf("\"\" ~ Arg_Tem == %0.3f", slope)
-  plot_label2 <- expression("Year^-1")
-  
-# Plot raw data point and fitted model 
-  Arg_Mc_Tem_Modeled<-Long_plot2+ 
-      scale_y_continuous(limits = c(-0.25,0.25),
-                       name=(expression(~Omega[Ar]~"_Temperature")),
-                       #breaks = seq(0, 10, 0.5),  
-                       expand = c(0.01, 0.01)) +
-      geom_point(data=Contributions2.mc, 
-                               aes(y=Arg_Tem, x=Date, 
-                                  fill = Sub_region), 
-                                  #colour = Sub_region), 
-                               alpha=0.5, size=0.5, shape=23)+
-      geom_line(data=Mc_Tem_Pred, aes(y = Mc_Tem_Pred,
-                                      x=Date), colour = "black",
-                linetype=2, size=1) #+
-      # annotate(geom="text", x = as.Date(xs), y = ys, parse=TRUE,
-      #          #label = expression("~Tem[Ar] == -0.015** ~Year ^-1"),
-      #          label =paste0(as.character(plot_label, plot_label2, sep = " ")),
-      #          size=4)
-  Arg_Mc_Tem_Modeled
-```
-
-## Tem - Offshore
-
-```{r, fig.height=4, fig.width=6}
-hist(Contributions2.of$Arg_Tem)
-shapiro.test(Contributions2.of$Arg_Tem)# Normality rejected
-
-Arg_Tem_of_0<-lmer(Arg_Tem~Year * Sub_region + 
-               (1|Month) + (1|SiteID),
-               data=Contributions2.of)
-  #summary(Arg_Tem_of_0)    
-  anova(Arg_Tem_of_0)
-  ranova(Arg_Tem_of_0)
-  step(Arg_Tem_of_0)
-
-Ar_Tem_of<-lmer(Arg_Tem ~ Sub_region + (1 | Month), 
-               data =Contributions2.of)
-  summary(Ar_Tem_of)
-  anova(Ar_Tem_of) 
-
-plot(Ar_Tem_of)
-  par(mfrow=c(1,2))
-  qqnorm(resid(Ar_Tem_of))
-  acf(resid(Ar_Tem_of), main="acf(resid(Arg - Tem offshore))")  
-  par(mfrow=c(1,1))
-    
-  Ar_Tem_of.emmc<-emmeans(Ar_Tem_of, ~Sub_region)
-    Ar_Tem_of.emmc<-multcomp::cld(Ar_Tem_of.emmc)
-    #Tem_of.emmc<-as.data.frame(Tem_of.emmc[complete.cases(Tem_of.emmc),])
-    Ar_Tem_of.emmc<-Ar_Tem_of.emmc[order(Ar_Tem_of.emmc$Sub_region),]
-    Ar_Tem_of.emmc
-#write.csv(Tem_of.emmc, "FLK_results/Model_Tem_of.emmc_POST.csv")
-```
-
-```{r}
-# Create a new data frame for independent variables  
-  Of_Newdata<-expand.grid(Zone=unique(Contributions2.of$Zone),
-                          Sub_region=unique(Contributions2.of$Sub_region),
-                          Year=seq((min(Contributions2.of$Year)),
-                                   (max(Contributions2.of$Year))))
-  Of_Tem_Pred <- predict(Ar_Tem_of, newdata=Of_Newdata, re.form=NA, level=0, 
-                        asList = FALSE)
-  
-  Of_Tem_Pred <-cbind(Of_Newdata, Of_Tem_Pred)
-  Of_Tem_Pred$Date<-as.Date(as.character(Of_Tem_Pred$Year), format = "%Y")
-  
-  # Model summary for labels
-  #slope<-round(summary(Ar_Tem_of)$coefficients["Year", "Estimate"], digits = 3)
-  #xs <- as.Date(as.character("2018-11-20"))
-  #ys <- max(Contributions2$Arg_Tem-0.5, na.rm =T)
-  plot_label <- sprintf("\"\" ~ Tem == %0.3f", slope)
-  plot_label2 <- expression("Year^-1")
-  
-# Plot raw data point and fitted model 
-  Arg_Of_Tem_Modeled<-Long_plot2+
-      scale_y_continuous(limits = c(-0.25,0.25),
-                       name=(expression(~Omega[Ar]~"_Temperature")),
-                       #breaks = seq(0, 10, 0.5),  
-                       expand = c(0.01, 0.01)) +
-    
-      geom_point(data=Contributions2.of, 
-                               aes(y=Arg_Tem, x=Date, 
-                                  fill = Sub_region), 
-                                  #colour = Sub_region), 
-                               alpha=0.5, size=0.5, shape=24)+
-      geom_line(data=Of_Tem_Pred, aes(y = Of_Tem_Pred,
-                                       x=Date, colour = Sub_region),
+          geom_line(data=Ar_Pred_f, aes(x=Date, y=ArTA_Pred_f, color="TA"),
+                linetype=1, size=1)+
+          geom_line(data=Ar_Pred_f, aes(x=Date, y=ArDIC_Pred_f, color="DIC"),
+                linetype=1, size=1)+
+          geom_line(data=Ar_Pred_f, aes(x=Date, y=ArTemp_Pred_f, color="Temperature"),
+                linetype=1, size=1)+
+          geom_line(data=Ar_Pred_f, aes(x=Date, y=ArSal_Pred_f, color="Salinity"),
+                linetype=1, size=1)+
+          geom_line(data=Ar_Pred_f, aes(x=Date, y=Combined, color="Combined"),
+                linetype=1, size=1)+
+          geom_line(data=Ar_Pred_f, aes(x=Date, y=Ar_Cal, color="Calculated"),
                 linetype=2, size=1)#+
-      # annotate(geom="text", x = as.Date(xs), y = ys, parse=TRUE,
-      #          #label = expression("~Tem[Ar] == -0.015** ~Year ^-1"),
-      #          label =paste0(as.character(plot_label, plot_label2, sep = " ")),
-      #          size=4)
-  Arg_Of_Tem_Modeled
+  Arg_Modeled
 ```
 
-## Tem - Oceanic
+## pH
 
-```{r, fig.height=4, fig.width=6}
-hist(Contributions2.oc$Arg_Tem)
-shapiro.test(Contributions2.oc$Arg_Tem)# Normality NOT rejected
-
-Arg_Tem_oc_0<-lmer(Arg_Tem ~ Year * Sub_region + 
-               (1 | Month)+ (1|SiteID),
-               data=Contributions2.oc)
-  #summary(Arg_Tem_oc_0)
-  anova(Arg_Tem_oc_0)
-  ranova(Arg_Tem_oc_0)
-  step(Arg_Tem_oc_0)
-
-Ar_Tem_oc<-lmer(Arg_Tem ~ (1 | Month), data = Contributions2.oc)
-  summary(Ar_Tem_oc)
-  anova(Ar_Tem_oc)
-  
-plot(Ar_Tem_oc)
-  par(mfrow=c(1,2))
-  qqnorm(resid(Ar_Tem_oc))
-  acf(resid(Ar_Tem_oc), main="acf(resid(Tem ocean))")
-  par(mfrow=c(1,1))
-  
-#Arg_Tem_oc.emmc<-emmeans(Ar_Tem_oc, ~Year)
-    #Arg_Tem_oc.emmc<-multcomp::cld(Arg_Tem_oc.emmc)
-    #Arg_Tem_oc.emmc
-```
+All zones in one model per variable
 
 ```{r}
-# Create a new data frame for independent variables  
-  Oc_Newdata<-expand.grid(one=unique(Contributions2.oc$Zone),
-                                Sub_region=unique(Contributions2.oc$Sub_region),
-                          Year=seq((min(Contributions2.oc$Year)), (max(Contributions2.oc$Year))))
-  Oc_Tem_Pred <- predict(Ar_Tem_oc, newdata=Oc_Newdata, re.form=NA, level=0, asList = FALSE)
-  
-  Oc_Tem_Pred <-cbind(Oc_Newdata, Oc_Tem_Pred)
-  Oc_Tem_Pred$Date<-as.Date(as.character(Oc_Tem_Pred$Year), format = "%Y")
-  
-# Model summary for labels
-  #slope<-round(summary(Ar_Tem_oc)$coefficients["Year", "Estimate"], digits = 3)
-  #xs <- as.Date(as.character("2018-11-20"))
-  #ys <- max(Contributions2.oc$Arg_Tem, na.rm =T)
-  plot_label <- sprintf("\"\" ~ Tem == %0.3f", slope)
-  plot_label2 <- expression("Year^-1")
-  
-# Plot raw data point and fitted model 
-  Arg_Oc_Tem_Modeled<-Long_plot2+ #facet_grid(~Zone)+
-      scale_y_continuous(limits = c(-0.25,0.25),
-                       name=(expression(~Omega[Ar]~"_Temperature")),
-                       #breaks = seq(0, 10, 0.5),  
-                       expand = c(0.01, 0.01)) +
-    
-      geom_point(data=Contributions2.oc, 
-                               aes(y=Arg_Tem, x=Date, 
-                                   fill = Sub_region), 
-                                   #colour = Sub_region), 
-                               alpha=0.5, size=0.5, shape=25)+
-      geom_line(data=Oc_Tem_Pred, aes(y = Oc_Tem_Pred,
-                                      x=Date), linetype=2, 
-                size=1, colour = "black") #+
-    
-      # annotate(geom="text", x = as.Date(xs), y = ys, parse=TRUE,
-      #          #label = expression("~Tem[Ar] == -0.015** ~Year ^-1"), 
-      #          label =paste0(as.character(plot_label, plot_label2, sep = " ")),
-      #          size=4)
-  Arg_Oc_Tem_Modeled
+# pH model
+pH_D<-lmer(pH_calculated ~Year * Zone +
+                     (1|Month) + (1|SiteID), 
+                    data=Trends.data)
+  summary(pH_D)
+  lstrends(pH_D, "Zone", var="Year")
+  pairs(lstrends(pH_D, "Zone", var="Year"))
+
+# TA contribution model  
+pH_TA_in_f<-lmer(pH_TA~Year*Zone + (1|Month) + (1|SiteID), 
+                    data=Trends.data)
+  summary(pH_TA_in_f)
+  lstrends(pH_TA_in_f, "Zone", var="Year")
+  pairs(lstrends(pH_TA_in_f, "Zone", var="Year"))
+
+# DIC contribution model   
+ pH_DIC_in_f<-lmer(pH_DIC~Year*Zone + (1|Month) + (1|SiteID), 
+                    data=Trends.data)
+  summary(pH_DIC_in_f)
+  lstrends(pH_DIC_in_f, "Zone", var="Year")
+  pairs(lstrends(pH_DIC_in_f, "Zone", var="Year"))
+
+# T contribution model 
+pH_Tem_in_f<-lmer(pH_Tem ~Year*Zone + (1|Month) + (1|SiteID), 
+                    data=Trends.data)
+  summary(pH_Tem_in_f)
+  lstrends(pH_Tem_in_f, "Zone", var="Year")
+  pairs(lstrends(pH_Tem_in_f, "Zone", var="Year"))
+
+# S contribution model  
+pH_Sal_in_f<-lmer(pH_Sal ~Year*Zone + (1|Month) + (1|SiteID), 
+                    data=Trends.data)
+  summary(pH_Sal_in_f)
+  lstrends(pH_Sal_in_f, "Zone", var="Year")
+  pairs(lstrends(pH_Sal_in_f, "Zone", var="Year"))
 ```
 
-## Models summary
-
-Complete models
-
-```{r , all fixed factors summary - Tem}
-# ANOVAs
-    # Convert ANOVA results into dataframes allows for easier name manipulation
-    av.Arg_Tem_in_0 <- data.frame (anova(Arg_Tem_in_0))
-    av.Arg_Tem_mc_0 <- data.frame (anova(Arg_Tem_mc_0) )
-    av.Arg_Tem_of_0 <- data.frame (anova(Arg_Tem_of_0))
-    av.Arg_Tem_oc_0 <- data.frame (anova(Arg_Tem_oc_0))
-    
-    # Putting all into one dataframe/Table
-    anova_Arg_Tem_0 <- data.frame(cbind
-                    (c("Year", "Sub_region", "Year:Sub_region", 
-                       "Year", "Sub_region", "Year:Sub_region",
-                       "Year", "Sub_region", "Year:Sub_region",
-                       "Year", "Sub_region", "Year:Sub_region"), 
-                                      rbind(av.Arg_Tem_in_0, av.Arg_Tem_mc_0,
-                                            av.Arg_Tem_of_0, av.Arg_Tem_oc_0))) 
-    colnames(anova_Arg_Tem_0) <- c("", "Sum Sq", "Mean Sq", "N Df" , "D Df",
-                                     "F value", "Pr(>F)")
-    row.names(anova_Arg_Tem_0) <- NULL
-    
-    # create HTML Table using kableExtra
-    anova_Arg_Tem_0 %>% kable("html", digits=2, 
-        caption="Initial Arg-Tem models fixed factors: Year * Region") %>% 
-      kable_styling(bootstrap_options = "striped", full_width = F) %>% 
-      pack_rows(., "Arg_Tem inshore", 1, 3) %>% # groups rows with label
-      pack_rows(., "Arg_Tem mid-channel", 4, 6)  %>% # groups rows with label
-      pack_rows(., "Arg_Tem offshore", 7, 9) %>% # groups rows with label
-      pack_rows(., "Arg_Tem ocean", 10, 12)  
-```
+Omega decomposition summary
 
 ```{r}
+pH_Con_models<-list( "dpH" = pH_D,
+                     "TA_pH" = pH_TA_in_f, 
+                     "DIC_pH" = pH_DIC_in_f, 
+                     "T_pH" = pH_Tem_in_f, 
+                     "S_pH" = pH_Sal_in_f
+                     )
 
-# R-ANOVAs    
-    rav.Ar_Tem_in_0 <- data.frame (ranova(Arg_Tem_in_0))
-    rav.Ar_Tem_mc_0 <- data.frame (ranova(Arg_Tem_mc_0) )
-    rav.Ar_Tem_of_0 <- data.frame (ranova(Arg_Tem_of_0))
-    rav.Ar_Tem_oc_0 <- data.frame (ranova(Arg_Tem_oc_0))
-    
-    # Putting all into one dataframe/Table
-    ranova_Ar_Tem_0 <- data.frame(cbind
-                    (c("<none>", "(1 | Month)", "(1 | SiteID)",
-                       "<none>", "(1 | Month)", "(1 | SiteID)",
-                       "<none>", "(1 | Month)", "(1 | SiteID)",
-                       "<none>", "(1 | Month)", "(1 | SiteID)"), 
-                      rbind(rav.Ar_Tem_in_0, rav.Ar_Tem_mc_0,
-                            rav.Ar_Tem_of_0, rav.Ar_Tem_oc_0))) 
-    colnames(ranova_Ar_Tem_0) <- c("", "npar", "logLik", "AIC" , "LRT",
-                                     "DF", "Pr(>Chi Sq)")
-    row.names(ranova_Ar_Tem_0) <- NULL
-    
-    # create HTML Table using kableExtra
-    ranova_Ar_Tem_0 %>% kable("html", digits=2,
-         caption="Initial Ar-Tem models random factors: Month+Station") %>% 
-      kable_styling(bootstrap_options = "striped", full_width = F) %>% 
-      pack_rows(., "Ar_Tem inshore", 1, 3) %>% # groups rows with label
-      pack_rows(., "Ar_Tem mid-channel", 4, 6)  %>% # groups rows with label
-      pack_rows(., "Ar_Tem offshore", 7, 9) %>% # groups rows with label
-      pack_rows(., "Ar_Tem ocean", 10, 12)  
-
-```
-
-```{r}
-Arg_Tem_models_0<-list("Inshore" = Arg_Tem_in_0, 
-                   "Mid channel" = Arg_Tem_mc_0, 
-                   "Offshore" = Arg_Tem_of_0, 
-                   "Ocean" = Arg_Tem_oc_0)
-modelsummary(Arg_Tem_models_0, stars = TRUE, 
+modelsummary(pH_Con_models, stars = TRUE, 
              #statistic = c('std.error', 'p.value', 'conf.int'),
-             title = 'Initial Arg_Tem model outputs (all factors)',
+             title = 'Contribution to pH)',
              coef_map=factor_order)
-#modelsummary(Tem_models, estimate = "p.value")
+#modelsummary(TA_models, estimate = "p.value")
 ```
 
-Models with non-significant factors removed
-
-```{r Stats Arg_Tem dropped models}
-Ar_Tem_models<-list("Inshore" = Arg_Tem_in, 
-                   "Mid channel" = Ar_Tem_mc, 
-                   "Offshore" = Ar_Tem_of, 
-                   "Ocean" = Ar_Tem_oc)
-modelsummary(Ar_Tem_models, stars = TRUE, 
-            #statistic = c('std.error', 'p.value', 'conf.int'),
-             title = 'Final Arg_Tem model outputs (dropped factors)',
-             coef_map=factor_order)
-
-#modelsummary(Ar_Tem_models, output = "FLK_results/Figures/Fig_2/Trend_Tem.docx")
-#modelsummary(Ar_Tem_models, estimate = "p.value")
-
-```
-
-
-```{r Tem model plot, fig.height=4, fig.width=8}
-Trends_Arg_Tem<-ggarrange(Arg_In_Tem_Modeled+ theme(
-                                          axis.text.x=element_blank(),
-                                          legend.position = "none"),
-                  Arg_Mc_Tem_Modeled+ theme(legend.position = "none",
-                                           axis.text.x=element_blank(),
-                                           axis.title.y=element_blank()),
-                                
-                  Arg_Of_Tem_Modeled + theme(legend.position = "none",
-                                           axis.text.x=element_blank(),
-                                           axis.title.y=element_blank()),
-                                
-                  Arg_Oc_Tem_Modeled + theme(legend.position = "none",
-                                           axis.text.x=element_blank(),
-                                           axis.title.y=element_blank()),
-                                           
-          #labels = c("D"),
-          ncol = 4, nrow = 1, widths =c(1.1, 1, 1, 1))
-Trends_Arg_Tem
-```
-
-
-# Figure XX: Trends
+Predict and plot
 
 ```{r}
-Con_Ar_Modeled<-ggarrange(
-                  Trends_Arg_Tem,
-                  Trends_Arg_Sal,
-                  Trends_Arg_TA,
-                  Trends_Arg_DIC,
-          #labels = c("A", "B", "C"),
-          ncol = 1, nrow = 4, heights = c(0.9, 0.9, 0.9, 1.0),
-          widths = c(.95, 0.95, 0.95, 1, 1))
-Con_Ar_Modeled
-#ggsave(file="FLK_results/Fig_2_Trends.svg", plot=Con_Ar_Modeled, dpi = 300, width=7.5, height=9)
+Newdata_f<-expand.grid(Zone=unique(Trends.data$Zone),
+                        Year=seq((min(Trends.data$Year)),
+                                   (max(Trends.data$Year))))
+pH_Cal <- predict(pH_D, newdata=Newdata_f, 
+                         re.form=NA, level=0, asList = FALSE)
+pH_Cal<-pH_Cal-mean_Op$OpH
+
+pHTA_Pred_f <- predict(pH_TA_in_f, newdata=Newdata_f, 
+                         re.form=NA, level=0, asList = FALSE)
+pHDIC_Pred_f <- predict(pH_DIC_in_f, newdata=Newdata_f, 
+                         re.form=NA, level=0, asList = FALSE)
+pHTemp_Pred_f <- predict(pH_Tem_in_f, newdata=Newdata_f, 
+                         re.form=NA, level=0, asList = FALSE)
+pHSal_Pred_f <- predict(pH_Sal_in_f, newdata=Newdata_f, 
+                         re.form=NA, level=0, asList = FALSE)
+
+pH_Pred_f <-cbind(Newdata_f, pHTA_Pred_f, pHDIC_Pred_f, 
+                     pHTemp_Pred_f, pHSal_Pred_f, pH_Cal)
+pH_Pred_f$Date<-as.Date(as.character(pH_Pred_f$Year), format = "%Y")
+
+pH_Pred_f$Combined<-pH_Pred_f$pHTA_Pred_f + pH_Pred_f$pHDIC_Pred_f +
+                    pH_Pred_f$pHTemp_Pred_f + pH_Pred_f$pHSal_Pred_f
+
+# Plot raw data point and fitted model 
+  pH_Modeled<-Long_plot2 + facet_grid(~Zone)+
+     geom_hline(yintercept = 0, colour="gray")+
+     scale_color_manual(values = colors)+
+     Zone_shapes4+
+     scale_y_continuous(limits = c(-0.10,0.1),
+                       name=(expression(
+                         Contribution~to~Delta[oc]~pH)),
+                       #breaks = seq(0, 10, 0.5),  
+                       expand = c(0.0, 0.0)) +
+      geom_line(data=pH_Pred_f, aes(x=Date, y=pHTA_Pred_f, color="TA"),
+                linetype=1, size=1)+
+          geom_line(data=pH_Pred_f, aes(x=Date, y=pHDIC_Pred_f, color="DIC"),
+                linetype=1, size=1)+
+          geom_line(data=pH_Pred_f, aes(x=Date, y=pHTemp_Pred_f, color="Temperature"),
+                linetype=1, size=1)+
+          geom_line(data=pH_Pred_f, aes(x=Date, y=pHSal_Pred_f, color="Salinity"),
+                linetype=1, size=1)+
+  geom_line(data=pH_Pred_f, aes(x=Date, y=Combined, color="Combined"),
+                linetype=1, size=1)+
+  geom_line(data=pH_Pred_f, aes(x=Date, y=pH_Cal, color="Calculated"),
+                linetype=2, size=1)
+pH_Modeled
 ```
 
-**Figure 2: Ocean acidification trends in the Florida Reef Tract.** (A) The partial pressure of the CO2, (B) pH, and (C) Aragonite saturation state (Ωar). The colors represent the biogeographical regions and the panels separate the locations by shelf zone. Text on the top of each panel shows the coefficient of change in the parameter per year (for significant trends). Solid lines represent models with significant trends (year\<0.05). Multiple colored lines are depicted for models where region was significant (region p\<0.05). Dashed lines represent the intercepts of models with non significant trends (year p\>0.05).
-
-#VV
+# - Figure 7: Contribution of TA, DIC, S and T to omega and pH interannual trends
 
 ```{r}
-Tre_arg_plot_DIC<- ggplot(Contributions, aes(x=Year, y=Arg_DIC, fill=Sub_region)) +
-        MyTheme +  
-        facet_grid(~Zone)+
-        #geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
-        Zone_shapes4+
-        geom_hline(yintercept = 0, colour="gray")+
-        stat_summary(aes (x=as.numeric(Year),
-                          y=Arg_DIC, colour=Sub_region),
-                    fun.data = "mean_cl_boot", geom = "errorbar", 
-                    width = 0.2,
-                    position=position_dodge(width=0.3))+
-        stat_summary(aes (x=as.numeric(Year), 
-                          y=Arg_DIC, fill=Sub_region, shape=Zone),
-                    size=2,
-                fun.data = "mean_cl_boot", geom = "point",
-                position=position_dodge(width=0.3))+
-        scale_y_continuous(#limits = c(-2.5,2.5),
-                       name=(expression("DIC contribution"~Omega[Ar])),
-                       breaks = seq(-2, 2, 1),  
-                       expand = c(0.01, 0.01))+
-        geom_smooth(method = "lm" )
-        
-#Tre_arg_plot_DIC
-
-Tre_arg_plot_DIC<- ggplot(Contributions[Contributions$Year>2014, ], aes(x=Year, y=Arg_DIC, fill=Sub_region)) +
-        MyTheme +  
-        facet_grid(~Zone)+
-        geom_hline(yintercept = 0, colour="gray")+
-        #geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
-        Zone_shapes4+
-        stat_summary(aes (x=as.numeric(Year),
-                          y=Arg_DIC, colour=Sub_region),
-                    fun.data = "mean_cl_boot", geom = "errorbar", 
-                    width = 0.2,
-                    position=position_dodge(width=0.3))+
-        stat_summary(aes (x=as.numeric(Year), 
-                          y=Arg_DIC, fill=Sub_region, shape=Zone),
-                    size=2,
-                    fun.data = "mean_cl_boot", geom = "point",
-                    position=position_dodge(width=0.3))+
-        scale_y_continuous(#limits = c(-2.5,2.5),
-                       name=(expression("DIC contribution"~Omega[Ar])),
-                       breaks = seq(-2, 2, 1),  
-                       expand = c(0.01, 0.01))
-#Tre_arg_plot_DIC
-
-Tre_arg_plot_Sal<- ggplot(Contributions, aes(x=Year, y=Arg_Sal, fill=Sub_region)) +
-        MyTheme +  
-        facet_grid(~Zone)+
-        Zone_shapes4+
-        geom_hline(yintercept = 0, colour="gray")+
-       # geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
-        stat_summary(aes (x=as.numeric(Year),
-                          y=Arg_Sal, colour=Sub_region),
-                    fun.data = "mean_cl_boot", geom = "errorbar", 
-                    width = 0.2,
-                    position=position_dodge(width=0.3))+
-        stat_summary(aes (x=as.numeric(Year), 
-                          y=Arg_Sal, fill=Sub_region, shape=Zone),
-                    size=2,
-                fun.data = "mean_cl_boot", geom = "point",
-                position=position_dodge(width=0.3))+
-         scale_y_continuous(#limits = c(-2.5,2.5),
-                       name=(expression("Salinity contribution"~Omega[Ar])),
-                       breaks = seq(-0.1, 0.1, 0.1),  
-                       expand = c(0.01, 0.01))
-#Tre_arg_plot_Sal
-
-Tre_arg_plot_Temp<- ggplot(Contributions, aes(x=Year, y=Arg_Tem, fill=Sub_region)) +
-        MyTheme +  
-        facet_grid(~Zone)+
-        geom_hline(yintercept = 0, colour="gray")+
-        #geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
-        Zone_shapes4+
-        stat_summary(aes (x=as.numeric(Year),
-                          y=Arg_Tem, colour=Sub_region),
-                    fun.data = "mean_cl_boot", geom = "errorbar", 
-                    width = 0.2,
-                    position=position_dodge(width=0.3))+
-        stat_summary(aes (x=as.numeric(Year), 
-                          y=Arg_Tem, fill=Sub_region, shape=Zone),
-                    size=2,
-                    fun.data = "mean_cl_boot", geom = "point",
-                    position=position_dodge(width=0.3))+
-        scale_y_continuous(#limits = c(-2.5,2.5),
-                       name=(expression("Salinity contribution"~Omega[Ar])),
-                       breaks = seq(-0.1, 0.1, 0.1),  
-                       expand = c(0.01, 0.01))
-#Tre_arg_plot_Temp
-
-Tre_cont_plot<-ggarrange(Cont_arg_plot_DIC+ theme(
-                                          axis.text.x=element_blank(),
-                                          axis.title.x = element_blank()),
-                  Cont_arg_plot_DIC+ theme(legend.position = "none",
-                                           axis.text.x=element_blank(),
-                                           axis.title.x = element_blank(),
-                                           strip.text.x = element_blank()),
-                                
-                  Cont_arg_plot_Sal + theme(legend.position = "none",
-                                           axis.text.x=element_blank(),
-                                           axis.title.x = element_blank(),
-                                           strip.text.x = element_blank()),
-                                
-                  Cont_arg_plot_Temp + theme(legend.position = "none",
-                                        strip.text.x = element_blank()),
-                                           
-          ncol = 1, nrow = 4, heights = c(1.3, 0.9, 0.9, 1.2))
-Tre_cont_plot
-
+Sensitivity<-ggarrange(Cont_arg_plot+ theme(axis.title.x=element_blank(),
+                                   axis.text.x=element_blank(),
+                                   legend.position = "top")+
+                                   guides(colour = guide_legend(nrow = 1)),
+                       Arg_Modeled + theme(axis.title.x=element_blank(),
+                                   axis.text.x=element_blank(),
+                                   axis.title.y=element_blank(),
+                                   legend.position = "top")+
+                                   guides(colour = guide_legend(nrow = 1)),
+                       Cont_pH_plot + theme(legend.position = "none",
+                                       strip.text.x = element_blank()),
+                       pH_Modeled + theme(legend.position = "none",
+                                        strip.text.x = element_blank(),
+                                        axis.title.y=element_blank(),
+                                        axis.text.x = element_text(angle = 90, 
+                                                                   vjust = 0.5)),
+          ncol = 2, nrow = 2, heights  =c(1.25, 1, 1,1), 
+                              widths = c(1.2, 1, 1.2, 1))
+Sensitivity
+#ggsave(file="FLK_results/Figures/Fig_7/Fig_7_Contributions.svg", plot=Sensitivity, dpi = 300, width=7.5, height=4.5)
 ```
 
+**Figure 7: Drivers of seasonal variability in ΩAra and pH in the Florida Reef.** Contributions of changing TA (purple), DIC (green), temperature (red), and salinity (blue) to changing aragonite saturation state and pH with respect to mean oceanic values. The black lines represent the combined effects estimated from TA, DIC, S and T. The gray lines represent the calculated ΩAra and pH from the in-situ values. 
 
-
-
-
-
-```{r}
-Tre_arg_plot_TA<- ggplot(Contributions, aes(x=Year, y=Arg_TA, fill=Sub_region)) +
-        MyTheme +  
-        facet_grid(~Zone)+
-        #geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
-        Zone_shapes4+
-        geom_hline(yintercept = 0, colour="gray")+
-        stat_summary(aes (x=as.numeric(Year),
-                          y=Arg_TA, colour=Sub_region),
-                    fun.data = "mean_cl_boot", geom = "errorbar", 
-                    width = 0.2,
-                    position=position_dodge(width=0.3))+
-        stat_summary(aes (x=as.numeric(Year), 
-                          y=Arg_TA, fill=Sub_region, shape=Zone),
-                    size=2,
-                fun.data = "mean_cl_boot", geom = "point",
-                position=position_dodge(width=0.3))+
-        scale_y_continuous(#limits = c(-2.5,2.5),
-                       name=(expression("TA contribution"~Omega[Ar])),
-                       breaks = seq(-2, 2, 1),  
-                       expand = c(0.01, 0.01))+
-        geom_smooth(method = "lm" )
-        
-#Tre_arg_plot_TA
-
-Tre_arg_plot_DIC<- ggplot(Contributions[Contributions$Year>2014, ], aes(x=Year, y=Arg_DIC, fill=Sub_region)) +
-        MyTheme +  
-        facet_grid(~Zone)+
-        geom_hline(yintercept = 0, colour="gray")+
-        #geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
-        Zone_shapes4+
-        stat_summary(aes (x=as.numeric(Year),
-                          y=Arg_DIC, colour=Sub_region),
-                    fun.data = "mean_cl_boot", geom = "errorbar", 
-                    width = 0.2,
-                    position=position_dodge(width=0.3))+
-        stat_summary(aes (x=as.numeric(Year), 
-                          y=Arg_DIC, fill=Sub_region, shape=Zone),
-                    size=2,
-                    fun.data = "mean_cl_boot", geom = "point",
-                    position=position_dodge(width=0.3))+
-        scale_y_continuous(#limits = c(-2.5,2.5),
-                       name=(expression("DIC contribution"~Omega[Ar])),
-                       breaks = seq(-2, 2, 1),  
-                       expand = c(0.01, 0.01))
-#Tre_arg_plot_DIC
-
-Tre_arg_plot_Sal<- ggplot(Contributions, aes(x=Year, y=Arg_Sal, fill=Sub_region)) +
-        MyTheme +  
-        facet_grid(~Zone)+
-        Zone_shapes4+
-        geom_hline(yintercept = 0, colour="gray")+
-       # geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
-        stat_summary(aes (x=as.numeric(Year),
-                          y=Arg_Sal, colour=Sub_region),
-                    fun.data = "mean_cl_boot", geom = "errorbar", 
-                    width = 0.2,
-                    position=position_dodge(width=0.3))+
-        stat_summary(aes (x=as.numeric(Year), 
-                          y=Arg_Sal, fill=Sub_region, shape=Zone),
-                    size=2,
-                fun.data = "mean_cl_boot", geom = "point",
-                position=position_dodge(width=0.3))+
-         scale_y_continuous(#limits = c(-2.5,2.5),
-                       name=(expression("Salinity contribution"~Omega[Ar])),
-                       breaks = seq(-0.1, 0.1, 0.1),  
-                       expand = c(0.01, 0.01))
-#Tre_arg_plot_Sal
-
-Tre_arg_plot_Temp<- ggplot(Contributions, aes(x=Year, y=Arg_Tem, fill=Sub_region)) +
-        MyTheme +  
-        facet_grid(~Zone)+
-        geom_hline(yintercept = 0, colour="gray")+
-        #geom_point(aes(colour=Sub_region, shape=Zone), size=0.8)+
-        Zone_shapes4+
-        stat_summary(aes (x=as.numeric(Year),
-                          y=Arg_Tem, colour=Sub_region),
-                    fun.data = "mean_cl_boot", geom = "errorbar", 
-                    width = 0.2,
-                    position=position_dodge(width=0.3))+
-        stat_summary(aes (x=as.numeric(Year), 
-                          y=Arg_Tem, fill=Sub_region, shape=Zone),
-                    size=2,
-                    fun.data = "mean_cl_boot", geom = "point",
-                    position=position_dodge(width=0.3))+
-        scale_y_continuous(#limits = c(-2.5,2.5),
-                       name=(expression("Salinity contribution"~Omega[Ar])),
-                       breaks = seq(-0.1, 0.1, 0.1),  
-                       expand = c(0.01, 0.01))
-#Tre_arg_plot_Temp
-
-Tre_cont_plot<-ggarrange(Cont_arg_plot_TA+ theme(
-                                          axis.text.x=element_blank(),
-                                          axis.title.x = element_blank()),
-                  Cont_arg_plot_DIC+ theme(legend.position = "none",
-                                           axis.text.x=element_blank(),
-                                           axis.title.x = element_blank(),
-                                           strip.text.x = element_blank()),
-                                
-                  Cont_arg_plot_Sal + theme(legend.position = "none",
-                                           axis.text.x=element_blank(),
-                                           axis.title.x = element_blank(),
-                                           strip.text.x = element_blank()),
-                                
-                  Cont_arg_plot_Temp + theme(legend.position = "none",
-                                        strip.text.x = element_blank()),
-                                           
-          ncol = 1, nrow = 4, heights = c(1.3, 0.9, 0.9, 1.2))
-Tre_cont_plot
-
-```
-
-
-
-#9. PCA
+# 9. PCA
 
 ```{r}
 #str(Month_Stats)
