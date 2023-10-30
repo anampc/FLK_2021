@@ -452,6 +452,94 @@ These data can be seen / flagged / filtered using the "Extreme" column.
   FLK.data_filtered<-FLK.data[FLK.data$Extreme=="Normal",]
 ```
 
+# 3 Temperature, salinity and light impacts on carbonate chemistry
+
+## Temperature vs light 
+
+### Zone
+
+```{r}
+library(lubridate)
+light<-read.csv("Data/light.csv", header = T)
+light$Time <- hms(light$Time)
+light$Time<-hour(light$Time) + minute(light$Time)/60
+light$Day<-as.character(light$Day)
+summary(light)
+light.summary<- ddply (light, .(Month2),
+                         summarise,
+                        h_light= mean (Time, na.rm = T))
+
+FLK.data<-FLK.data %>%
+    mutate(MD = format(as.Date(FLK.data$ESTDate), "%d-%b"))
+
+FLK.data<-join(FLK.data, light, by=c("MD", "Month2"), type="left")
+summary(FLK.data$Time)
+```
+
+
+### Zone
+
+```{r,  fig.height=4, fig.width=8}
+TA_light<- ggplot(FLK.data) + MyTheme+
+  geom_point(aes (Time, TA_umol_kg, fill=Sub_region, shape=Zone),
+             alpha=0.7, size=2)+
+  # geom_smooth(aes(Temperature_C, BestSalinity, colour=Sub_region),
+  #             linetype=1, method = "lm", se=F)+
+  geom_smooth(aes(Time, TA_umol_kg, colour=Sub_region),
+              linetype=1, method = "lm", se=F)+
+  #Precipitation_fill+
+  #Season_fill+
+  Zone_shapes4+
+  guides(shape = "none")+
+  scale_y_continuous(#limits = c(1700, 2400),
+                     expand = c(0.01, 0.01),
+                     name=expression(paste("TA (", mu, "mol ", kg^-1, ")")))+
+  scale_x_continuous(#limits = c(1700, 2400),
+                     expand = c(0.02, 0.02),
+                     name=(expression("Day light duration"~(h))))+
+ theme(axis.text.x = element_text(angle = 0))
+TA_light + facet_grid(~Zone)
+```
+
+* Light-Sal: Model II OLS regressions - only zone 
+
+```{r}
+L_TA_coef_OLS <- FLK.data %>%
+                group_by(Zone) %>%
+                do({model = lm(TA_umol_kg~Time, data=.)  # model
+                    data.frame(tidy(model), # get coefficient info
+                    glance(model))})        # get model info
+#L_TA_coef_OLS
+
+kable(as.data.frame(L_TA_coef_OLS[,1:9], format = "markdown"), 
+      caption = "Table: TA vs Day duraton linear regressions by zone",
+      digits = 3)%>% 
+kable_styling(bootstrap_options = c("striped", "condensed", full_width = F), font_size = 11)
+#write.csv(TS_coef_OLS, "FLK_results/Tem_Sal.csv")
+```
+
+
+```{r,  fig.height=4, fig.width=8}
+DIC_light<- ggplot(FLK.data) + MyTheme+
+  geom_point(aes (Time, DIC_umol_kg, fill=Season, shape=Zone),
+             alpha=0.7, size=2)+
+  # geom_smooth(aes(Temperature_C, BestSalinity, colour=Sub_region),
+  #             linetype=1, method = "lm", se=F)+
+  geom_smooth(aes(Time, DIC_umol_kg, colour=Sub_region),
+              linetype=1, method = "lm", se=F)+
+  #Precipitation_fill+
+  Season_fill+
+  Zone_shapes4+
+  guides(shape = "none")+
+  scale_y_continuous(#limits = c(1700, 2400),
+                     expand = c(0.01, 0.01),
+                     name=expression(paste("DIC (", mu, "mol ", kg^-1, ")")))+
+  scale_x_continuous(#limits = c(1700, 2400),
+                     expand = c(0.02, 0.02),
+                     name=(expression("Day light duration"~(h))))+
+ theme(axis.text.x = element_text(angle = 0))
+DIC_light + facet_grid(Sub_region~Zone)
+```
 ## Temperature vs salinity 
 
 ### Zone
@@ -1285,7 +1373,7 @@ TA_DIA_sal_model_in<-lm(TA_DIC~BestSalinity * Sub_region,
 ### Temperature
 
 ```{r}
-Tem_Zone<-ggarrange(TA_DIC_Tem + facet_grid(~Zone) +
+Tem_Zone<-ggarrange(Tep_Sal_Sea + facet_grid(~Zone) +
                             guides(fill = guide_legend(
                               override.aes=list(shape=21)),
                               shape = "none")+
@@ -2173,8 +2261,8 @@ TA_DIC_season<-TA_DIC +
   
   geom_text(data = coef_zone_noExtremes, 
             aes(x = TA_DIC_Ocean$DICmean, y = 2070,
-                label = paste("Slo =", estimate,  
-                              " r.sq=", r.squared)),
+                label = paste("TA =", estimate, "DIC;",  
+                              " R2=", r.squared)),
             size=2.5)+
 
   geom_point(aes(x=TA_DIC_Ocean$DICmean, y=TA_DIC_Ocean$TAmean),
@@ -2210,6 +2298,7 @@ TA_DIC_coef_Season_noExtremes <- FLK.data[FLK.data$Extreme=="Normal", ] %>%
                     data.frame(tidy(model), # get coefficient info
                     glance(model))})        # get model info
 
+write_csv(TA_DIC_coef_Season_noExtremes, "Table_S16.csv")
 
 ```
 
@@ -2228,7 +2317,7 @@ Slope_plot<-ggplot(data=Slopes_season, aes (x =Zone, y =estimate)) +
   #              position=position_dodge(width=0.6))+
    geom_point(aes(fill = factor(Season)), 
                position=position_dodge(width=0.3),
-              shape = 21, size=0.5)+
+              shape = 21, size=1.5, alpha=0.5)+
  scale_y_continuous(limits = c(0,1.2),
                      expression(paste("TA vs DIC slope")))+
   facet_grid(Sub_region~Region)+
@@ -2236,7 +2325,7 @@ Slope_plot<-ggplot(data=Slopes_season, aes (x =Zone, y =estimate)) +
   Season_colour+
   guides(fill=FALSE)+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.1),
-        legend.position = "bottom")
+        legend.position = "none")
 #Slope_plot
 
 ```
@@ -2246,7 +2335,7 @@ Slope_plot<-ggplot(data=Slopes_season, aes (x =Zone, y =estimate)) +
 ```{r,  echo=FALSE}
 FLK_slopes<-ggarrange(TA_DIC_season, Slope_plot,
           labels = c("A", "B"),
-          ncol = 2, nrow = 1, widths = c(4, 2))
+          ncol = 2, nrow = 1, widths = c(4, 1.5))
 FLK_slopes
 #ggsave(file="FLK_results/Fig_5_FLK_slopes.svg", plot=FLK_slopes, dpi = 300, width=8, height=8)
   
