@@ -13,12 +13,12 @@ which encompass four major biogeographic regions (Biscayne Bay, Upper Keys, Midd
 Data have been collected since 2010, with approximately bi-monthly periodicity starting in 2015. We used these data to asses
 
 * Spatial differences
-* Seasonlaity
+* Seasonality
 * Interannual trends
 
 ### Contents:
 #### Scripts:
-* **1.CarbChem_expploreNewDatabase.Rmd:** R script that explores all data and look for potential outlayers
+* **1.CarbChem_expploreNewDatabase.Rmd:** R script that explores all data and look for potential outliers
 * **2.Seasonality_and_trends.Rmd** R script with statistical analysis 
 
 
@@ -29,3 +29,5 @@ Data have been collected since 2010, with approximately bi-monthly periodicity s
 
 ##### FLK_results:
 * **FLK_results/**: Directory containing the files produced by the analysis (script "2.Seasonality_and_trends.Rmd")
+
+
